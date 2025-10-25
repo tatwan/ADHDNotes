@@ -42,4 +42,4 @@ coverage/
 
 # AI/Assistant files
 claude.md
-
+.claude/** */
