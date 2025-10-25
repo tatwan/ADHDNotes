@@ -1,5 +1,5 @@
 import { Box, VStack, Text, Button, IconButton, Flex, Input, HStack, Menu, MenuList, MenuItem } from '@chakra-ui/react';
-import { FiPlus, FiFolder, FiFile, FiCheck, FiX, FiTrash2, FiEdit, FiCopy, FiFileText } from 'react-icons/fi';
+import { FiPlus, FiFolder, FiFile, FiCheck, FiX, FiTrash2, FiEdit, FiCopy, FiFileText, FiRefreshCw, FiSearch } from 'react-icons/fi';
 import { useAppStore } from '@stores/appStore';
 import { useNoteStore } from '@stores/noteStore';
 import { FileTreeItem } from '@/types';
@@ -15,6 +15,7 @@ const Sidebar = () => {
   const [isRenaming, setIsRenaming] = useState<string | null>(null);
   const [renameTitle, setRenameTitle] = useState('');
   const [contextMenuItem, setContextMenuItem] = useState<FileTreeItem | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleFileClick = async (item: FileTreeItem) => {
     if (!item.isDirectory) {
@@ -110,6 +111,33 @@ const Sidebar = () => {
     if (result.success) {
       await loadFileTree();
     }
+  };
+
+  const handleRefresh = async () => {
+    await loadFileTree();
+  };
+
+  const filterFileTree = (items: FileTreeItem[], query: string): FileTreeItem[] => {
+    if (!query.trim()) return items;
+
+    return items
+      .map(item => {
+        if (item.isDirectory) {
+          const filteredChildren = filterFileTree(item.children || [], query);
+          if (filteredChildren.length > 0) {
+            return { ...item, children: filteredChildren };
+          }
+          return null;
+        } else {
+          // For files, check if the filename (without extension) contains the search query
+          const fileNameWithoutExt = item.name.replace('.md', '').toLowerCase();
+          if (fileNameWithoutExt.includes(query.toLowerCase())) {
+            return item;
+          }
+          return null;
+        }
+      })
+      .filter((item): item is FileTreeItem => item !== null);
   };
 
   const renderFileTree = (items: FileTreeItem[], level: number = 0) => {
@@ -230,12 +258,34 @@ const Sidebar = () => {
 
       {/* File Tree */}
       <Box flex="1" overflow="auto" p={2}>
+        {/* Search and Refresh Bar */}
+        <Box mb={3}>
+          <Flex gap={2}>
+            <Flex flex="1" position="relative">
+              <Input
+                size="sm"
+                placeholder="Search notes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                pr="2.5rem"
+              />
+              <Box position="absolute" right="0.5rem" top="50%" transform="translateY(-50%)">
+                <FiSearch size={16} color="gray" />
+              </Box>
+            </Flex>
+            <IconButton
+              aria-label="Refresh notes"
+              icon={<FiRefreshCw />}
+              size="sm"
+              variant="ghost"
+              onClick={handleRefresh}
+            />
+          </Flex>
+        </Box>
+
         <VStack align="stretch" spacing={1}>
-          <Text fontSize="xs" fontWeight="bold" color="gray.600" px={2} py={1}>
-            PROJECT NOTES
-          </Text>
           {fileTree.length > 0 ? (
-            renderFileTree(fileTree)
+            renderFileTree(filterFileTree(fileTree, searchQuery))
           ) : (
             <Text fontSize="sm" color="gray.500" px={2} py={4} textAlign="center">
               No project notes yet
