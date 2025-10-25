@@ -2,13 +2,40 @@
 
 A local-first Electron desktop application for ADHD users that combines **markdown** note-taking with calendar integration and implements forced daily task prioritization through intentional friction.
 
-**Calendar Notes: Task and Time Blocks**
+### **Calendar (Daily) Notes: Task and Time Blocks**
+
+* Notes associated with the calendar 
 
 ![image-20251025230752057](images/image-20251025230752057.png)
 
-**General Notes**
+### **General Notes ** 
+
+* Create non-calendar dependent notes (like any note taking tool)
+* All your notes are locally stored 
+* Full Markdown support 
 
 ![image-20251025231100264](images/image-20251025231100264.png)
+
+### **Daily Task Migration**
+
+Tomorrow when you open the app, if you have incomplete tasks from today, you'll see a modal:
+
+**"Review Yesterday's Tasks"**
+
+You MUST review each task:
+
+- **Move to Today** - Task gets copied to today's note
+- **Not Important** - Task is dismissed
+
+This is **intentional**! It forces you to:
+
+- Reflect on what actually matters
+- Avoid endless task accumulation
+- Make conscious prioritization decisions
+
+You cannot skip this - every task requires a decision.
+
+![image-20251026011101371](images/image-20251026011101371.png)
 
 ## Features
 
