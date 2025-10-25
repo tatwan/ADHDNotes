@@ -39,3 +39,7 @@ Thumbs.db
 # Testing
 coverage/
 .nyc_output/
+
+# AI/Assistant files
+claude.md
+
