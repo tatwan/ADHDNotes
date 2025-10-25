@@ -71,6 +71,7 @@ const MarkdownEditor = () => {
   }, []);
 
   // Update editor content when note changes
+  // When the selected note changes (id), replace editor content and clear unsaved flag
   useEffect(() => {
     if (editorViewRef.current && currentNote) {
       const view = editorViewRef.current;
@@ -84,10 +85,31 @@ const MarkdownEditor = () => {
             insert: currentNote.content
           }
         });
+        // Loading a new note should clear the "unsaved" state
         setHasUnsavedChanges(false);
       }
     }
   }, [currentNote?.id]);
+
+  // When the note content changes externally (for example via preview toggles),
+  // update the editor view without clearing the unsaved flag.
+  useEffect(() => {
+    if (editorViewRef.current && currentNote) {
+      const view = editorViewRef.current;
+      const currentContent = view.state.doc.toString();
+
+      if (currentContent !== currentNote.content) {
+        view.dispatch({
+          changes: {
+            from: 0,
+            to: currentContent.length,
+            insert: currentNote.content
+          }
+        });
+        // Do NOT reset hasUnsavedChanges here; preview interactions should keep changes unsaved
+      }
+    }
+  }, [currentNote?.content]);
 
   const handleSave = async () => {
     await saveCurrentNote();
@@ -103,6 +125,37 @@ const MarkdownEditor = () => {
 
   const togglePreviewMode = () => {
     setIsPreviewMode(!isPreviewMode);
+  };
+
+  const handleCheckboxChange = (text: string, checked: boolean) => {
+    if (!currentNote) return;
+
+    const lines = currentNote.content.split('\n');
+    const newState = checked ? '[x]' : '[ ]';
+
+    // Find the line that contains the task text with a checkbox
+    const lineIndex = lines.findIndex(line => {
+      const trimmed = line.trim();
+      // Match lines that start with - [ ] or - [x] (case-insensitive) followed by the text
+      const regex = /^[\s]*[\*\-\+]\s*\[(x|X| )\]\s*(.+)$/;
+      const match = trimmed.match(regex);
+      if (match) {
+        const taskText = match[2].trim();
+        return taskText === text.trim();
+      }
+      return false;
+    });
+
+    if (lineIndex !== -1) {
+      // Replace the checkbox state in the line
+      const line = lines[lineIndex];
+      const updatedLine = line.replace(/\[(x| )\]/i, newState);
+      lines[lineIndex] = updatedLine;
+
+      const newContent = lines.join('\n');
+      updateNoteContent(newContent);
+      setHasUnsavedChanges(true);
+    }
   };
 
   // Keyboard shortcut for preview toggle: Cmd+/ or Ctrl+/
@@ -228,6 +281,7 @@ const MarkdownEditor = () => {
           <MarkdownPreview
             content={currentNote?.content || ''}
             fontSize={settings.editorFontSize || 14}
+            onCheckboxChange={handleCheckboxChange}
           />
         )}
       </Box>

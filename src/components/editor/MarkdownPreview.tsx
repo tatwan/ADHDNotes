@@ -2,21 +2,59 @@ import { Box } from '@chakra-ui/react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
+import { useEffect, useRef } from 'react';
 import './markdown-preview.css';
 
 interface MarkdownPreviewProps {
   content: string;
   fontSize?: number;
+  onCheckboxChange?: (text: string, checked: boolean) => void;
 }
 
-const MarkdownPreview = ({ content, fontSize = 14 }: MarkdownPreviewProps) => {
+const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange }: MarkdownPreviewProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Enable disabled checkboxes after render
+  useEffect(() => {
+    if (containerRef.current) {
+      const checkboxes = containerRef.current.querySelectorAll('input[type="checkbox"][disabled]');
+      checkboxes.forEach((checkbox) => {
+        (checkbox as HTMLInputElement).disabled = false;
+      });
+    }
+  });
+
+  // Handle checkbox clicks using event delegation
+  const handleContainerClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox') {
+      const checkbox = target as HTMLInputElement;
+      
+      // Find the parent li element
+      const li = target.closest('li');
+      if (li) {
+        // Extract text from the li content, excluding the input
+        const liClone = li.cloneNode(true) as HTMLElement;
+        const inputInClone = liClone.querySelector('input[type="checkbox"]');
+        if (inputInClone) {
+          inputInClone.remove();
+        }
+        const text = liClone.textContent?.trim() || '';
+        if (text && onCheckboxChange) {
+          onCheckboxChange(text, checkbox.checked);
+        }
+      }
+    }
+  };
   return (
     <Box
+      ref={containerRef}
       className="markdown-preview"
       p={6}
       height="100%"
       overflow="auto"
       fontSize={`${fontSize}px`}
+      onClick={handleContainerClick}
       sx={{
         '& h1': {
           fontSize: '2em',
@@ -107,37 +145,21 @@ const MarkdownPreview = ({ content, fontSize = 14 }: MarkdownPreviewProps) => {
         },
         '& input[type="checkbox"]': {
           marginRight: '0.5em',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          pointerEvents: 'auto !important'
+        },
+        '& input[type="checkbox"][disabled]': {
+          pointerEvents: 'auto !important'
+        },
+        '& .task-list-item input[type="checkbox"]': {
+          pointerEvents: 'auto !important'
         }
       }}
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
-        components={{
-          // Custom renderer for task lists
-          li: ({ children, ...props }) => {
-            const content = String(children);
-            // Check if this is a task list item
-            if (content.includes('[ ]') || content.includes('[x]')) {
-              const isChecked = content.includes('[x]');
-              const text = content.replace(/\[(x| )\]\s*/, '');
-
-              return (
-                <li style={{ listStyle: 'none', display: 'flex', alignItems: 'flex-start' }}>
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    readOnly
-                    style={{ marginTop: '0.3em', marginRight: '0.5em' }}
-                  />
-                  <span>{text}</span>
-                </li>
-              );
-            }
-            return <li {...props}>{children}</li>;
-          }
-        }}
+        components={{}}
       >
         {content}
       </ReactMarkdown>
