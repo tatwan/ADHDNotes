@@ -1,11 +1,11 @@
 import { Box, VStack, Text, Button, IconButton, Flex, Input, HStack, Menu, MenuList, MenuItem, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@chakra-ui/react';
-import { FiPlus, FiFolder, FiFile, FiCheck, FiX, FiTrash2, FiEdit, FiCopy, FiFileText, FiRefreshCw, FiSearch } from 'react-icons/fi';
+import { FiPlus, FiFolder, FiFile, FiCheck, FiX, FiTrash2, FiEdit, FiCopy, FiFileText, FiRefreshCw, FiSearch, FiChevronRight, FiChevronDown } from 'react-icons/fi';
 import { useAppStore } from '@stores/appStore';
 import { useNoteStore } from '@stores/noteStore';
 import { FileTreeItem } from '@/types';
 import { join, dirname } from 'path-browserify';
 import { getProjectsDir, deleteFile, renameFile, copyFile, createFolder } from '@utils/fileSystem';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -32,8 +32,42 @@ const Sidebar = () => {
   const [newFolderName, setNewFolderName] = useState('');
   const [currentDirectory, setCurrentDirectory] = useState<string | undefined>();
   const [activeItem, setActiveItem] = useState<FileTreeItem | null>(null);
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+
+  // Toggle folder expansion
+  const toggleFolderExpansion = (folderId: string) => {
+    setExpandedFolders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(folderId)) {
+        newSet.delete(folderId);
+      } else {
+        newSet.add(folderId);
+      }
+      return newSet;
+    });
+  };
   const { isOpen: isDeleteModalOpen, onOpen: onDeleteModalOpen, onClose: onDeleteModalClose } = useDisclosure();
   const [itemToDelete, setItemToDelete] = useState<FileTreeItem | null>(null);
+
+  // Load both file trees on mount
+  useEffect(() => {
+    loadFileTree();
+
+    // Set up file watchers
+    window.electronAPI.onFileAdded(() => {
+      loadFileTree();
+    });
+    window.electronAPI.onFileChanged(() => {
+      loadFileTree();
+    });
+    window.electronAPI.onFileDeleted(() => {
+      loadFileTree();
+    });
+
+    return () => {
+      window.electronAPI.removeFileListeners();
+    };
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -389,14 +423,15 @@ const Sidebar = () => {
                     cursor="pointer"
                     _hover={{ bg: 'gray.200' }}
                     borderRadius="md"
-                    onClick={() => handleFileClick(item)}
+                    onClick={() => toggleFolderExpansion(item.id)}
                     onContextMenu={(e) => {
                       e.preventDefault();
                       setContextMenuItem(item);
                     }}
                     id={item.id}
                   >
-                    <FiFolder />
+                    {expandedFolders.has(item.id) ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
+                    <FiFolder style={{ marginLeft: '4px' }} />
                     <Text ml={2} fontSize="sm" noOfLines={1}>
                       {item.name}
                     </Text>
@@ -417,7 +452,7 @@ const Sidebar = () => {
                   </MenuList>
                 </Menu>
               )}
-              {item.children && item.children.length > 0 && (
+              {item.children && item.children.length > 0 && expandedFolders.has(item.id) && (
                 <Box>{renderFileTree(item.children, level + 1)}</Box>
               )}
             </Box>
@@ -490,9 +525,7 @@ const Sidebar = () => {
         )}
       </DraggableItem>
     ));
-  };
-
-  return (
+  };  return (
     <Box height="100%" display="flex" flexDirection="column">
       {/* Header */}
       <Box p={4} borderBottom="1px" borderColor="gray.200">
@@ -587,7 +620,7 @@ const Sidebar = () => {
               renderFileTree(filterFileTree(fileTree, searchQuery))
             ) : (
               <Text fontSize="sm" color="gray.500" px={2} py={4} textAlign="center">
-                No project notes yet
+                No notes yet
               </Text>
             )}
 

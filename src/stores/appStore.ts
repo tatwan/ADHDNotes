@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { AppSettings, MigrationTask, FileTreeItem, DEFAULT_SETTINGS } from '@/types';
-import { storeGet, storeSet, buildFileTree, getProjectsDir } from '@utils/fileSystem';
+import { storeGet, storeSet, buildFileTree, getProjectsDir, updateNotesDirectory } from '@utils/fileSystem';
 import { checkMigrationNeeded, completeMigration, addMigrationHistory } from '@utils/migrationChecker';
 import { insertMigratedTask } from '@utils/markdownParser';
 import { formatDateForFileName } from '@utils/dateUtils';
@@ -45,6 +45,13 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     await get().loadSettings();
     await get().loadFileTree();
     await get().checkForMigration();
+
+    // Set up IPC event listeners
+    window.electronAPI.onNotesDirChanged((newDir: string) => {
+      updateNotesDirectory(newDir);
+      get().loadFileTree();
+    });
+
     set({ isInitialized: true });
   },
 

@@ -2,7 +2,7 @@ import { Box } from '@chakra-ui/react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './markdown-preview.css';
 
 interface MarkdownPreviewProps {
@@ -11,8 +11,135 @@ interface MarkdownPreviewProps {
   onCheckboxChange?: (text: string, checked: boolean) => void;
 }
 
+// React-friendly Image component: resolves local images via IPC and avoids direct DOM mutations
+const ImageComponent = ({ src, alt, title, ...props }: any) => {
+  const [dataSrc, setDataSrc] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      if (!src) {
+        setLoading(false);
+        return;
+      }
+
+      // If it's already an absolute URL or data URL, use it directly
+      if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:')) {
+        setDataSrc(src);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        // Try resolving relative to the configured notes directory
+        const notesDir = await window.electronAPI.getNotesDir();
+        const fullPath = src.startsWith('/') ? src : `${notesDir}/${src}`;
+
+        console.log('Loading image:', src, '->', fullPath);
+        const res = await window.electronAPI.readImageFile(fullPath);
+        console.log('Image load result:', res.success, res.dataUrl ? 'has dataUrl' : 'no dataUrl');
+
+        if (!cancelled) {
+          if (res.success && res.dataUrl) {
+            setDataSrc(res.dataUrl);
+          } else {
+            setFailed(true);
+          }
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error('Failed to load image:', src, err);
+        if (!cancelled) {
+          setFailed(true);
+          setLoading(false);
+        }
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [src]);
+
+  // Parse inline zoom style (e.g. style="zoom:23%") from props.style and convert to transform
+  const style: any = {};
+  if (props?.style && typeof props.style === 'string' && props.style.includes('zoom:')) {
+    const zoomMatch = (props.style as string).match(/zoom:\s*(\d+(?:\.\d+)?)%?/);
+    if (zoomMatch) {
+      const zoomValue = parseFloat(zoomMatch[1]) / 100;
+      style.transform = `scale(${zoomValue})`;
+      style.transformOrigin = 'top left';
+    }
+  }
+
+  if (failed) {
+    return (
+      <div
+        style={{
+          padding: '1em',
+          background: '#f7fafc',
+          border: '1px solid #e1e4e8',
+          borderRadius: 4,
+          color: '#586069',
+          fontSize: '0.9em',
+          margin: '0.5em 0'
+        }}
+        title={title}
+      >
+        📷 Image not found: {alt || src}
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          padding: '1em',
+          background: '#f7fafc',
+          border: '1px solid #e1e4e8',
+          borderRadius: 4,
+          color: '#586069',
+          fontSize: '0.9em',
+          margin: '0.5em 0'
+        }}
+        title={title}
+      >
+        📷 Loading image...
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={dataSrc || ''}
+      alt={alt || ''}
+      title={title}
+      style={{ maxWidth: '100%', height: 'auto', borderRadius: 4, margin: '0.5em 0', display: 'block', ...style }}
+      onError={() => setFailed(true)}
+      {...props}
+    />
+  );
+};
+
 const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange }: MarkdownPreviewProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Preprocess content to convert HTML img tags to markdown img syntax
+  const preprocessContent = (content: string) => {
+    // Convert HTML img tags to markdown img syntax
+    return content.replace(/<img\s+src="([^"]*)"(?:\s+alt="([^"]*)")?(?:\s+title="([^"]*)")?\s*\/?>/gi, (_, src, alt, title) => {
+      const altText = alt || '';
+      const titleText = title ? ` "${title}"` : '';
+      return `![${altText}](${src}${titleText})`;
+    });
+  };
+
+  const processedContent = preprocessContent(content);
 
   // Enable disabled checkboxes after render
   useEffect(() => {
@@ -23,6 +150,8 @@ const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange }: MarkdownP
       });
     }
   });
+
+  // Image handling is done inside the ImageComponent (no direct DOM mutations here)
 
   // Handle checkbox clicks using event delegation
   const handleContainerClick = (e: React.MouseEvent) => {
@@ -153,15 +282,27 @@ const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange }: MarkdownP
         },
         '& .task-list-item input[type="checkbox"]': {
           pointerEvents: 'auto !important'
+        },
+        '& img': {
+          maxWidth: '100%',
+          height: 'auto',
+          borderRadius: '4px',
+          margin: '0.5em 0',
+          display: 'block'
+        },
+        '& img[style*="zoom"]': {
+          transformOrigin: 'top left'
         }
       }}
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
-        components={{}}
+        components={{
+          img: ImageComponent
+        }}
       >
-        {content}
+        {processedContent}
       </ReactMarkdown>
     </Box>
   );

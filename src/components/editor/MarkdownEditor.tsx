@@ -282,6 +282,7 @@ const MarkdownEditor = () => {
             content={currentNote?.content || ''}
             fontSize={settings.editorFontSize || 14}
             onCheckboxChange={handleCheckboxChange}
+            currentFilePath={currentNote?.filePath}
           />
         )}
       </Box>

@@ -3,6 +3,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 // Expose protected methods to renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // File system operations
+  getDailyDir: () => ipcRenderer.invoke('get-daily-dir'),
   getNotesDir: () => ipcRenderer.invoke('get-notes-dir'),
   readFile: (filePath: string) => ipcRenderer.invoke('read-file', filePath),
   writeFile: (filePath: string, content: string) =>
@@ -15,6 +16,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   fileExists: (filePath: string) => ipcRenderer.invoke('file-exists', filePath),
   copyFile: (sourcePath: string, destPath: string) =>
     ipcRenderer.invoke('copy-file', sourcePath, destPath),
+  readImageFile: (filePath: string) => ipcRenderer.invoke('read-image-file', filePath),
+
+  // Folder dialog
+  openFolderDialog: () => ipcRenderer.invoke('open-folder-dialog'),
 
   // Store operations
   storeGet: (key: string) => ipcRenderer.invoke('store-get', key),
@@ -31,6 +36,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onFileDeleted: (callback: (filePath: string) => void) => {
     ipcRenderer.on('file-deleted', (_, filePath) => callback(filePath));
   },
+  onNotesDirChanged: (callback: (newDir: string) => void) => {
+    ipcRenderer.on('custom-notes-dir-changed', (_, newDir) => callback(newDir));
+  },
 
   // Remove listeners
   removeFileListeners: () => {
@@ -44,6 +52,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 declare global {
   interface Window {
     electronAPI: {
+      getDailyDir: () => Promise<string>;
       getNotesDir: () => Promise<string>;
       readFile: (filePath: string) => Promise<{ success: boolean; content?: string; error?: string }>;
       writeFile: (filePath: string, content: string) => Promise<{ success: boolean; error?: string }>;
@@ -62,12 +71,15 @@ declare global {
       renameFile: (oldPath: string, newPath: string) => Promise<{ success: boolean; error?: string }>;
       fileExists: (filePath: string) => Promise<{ success: boolean; exists: boolean }>;
       copyFile: (sourcePath: string, destPath: string) => Promise<{ success: boolean; error?: string }>;
+      readImageFile: (filePath: string) => Promise<{ success: boolean; dataUrl?: string; error?: string }>;
+      openFolderDialog: () => Promise<{ success: boolean; directory?: string }>;
       storeGet: (key: string) => Promise<any>;
       storeSet: (key: string, value: any) => Promise<{ success: boolean }>;
       storeDelete: (key: string) => Promise<{ success: boolean }>;
       onFileAdded: (callback: (filePath: string) => void) => void;
       onFileChanged: (callback: (filePath: string) => void) => void;
       onFileDeleted: (callback: (filePath: string) => void) => void;
+      onNotesDirChanged: (callback: (newDir: string) => void) => void;
       removeFileListeners: () => void;
     };
   }

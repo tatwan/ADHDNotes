@@ -5,6 +5,7 @@ import { join } from 'path-browserify';
  * File system abstraction layer using Electron IPC
  */
 
+let dailyDir: string | null = null;
 let notesDir: string | null = null;
 
 /**
@@ -18,19 +19,27 @@ export async function getNotesDirectory(): Promise<string> {
 }
 
 /**
- * Get daily notes directory path
+ * Update notes directory (called when user selects new directory)
  */
-export async function getDailyNotesDir(): Promise<string> {
-  const baseDir = await getNotesDirectory();
-  return join(baseDir, 'daily');
+export function updateNotesDirectory(newDir: string) {
+  notesDir = join(newDir, 'notes');
 }
 
 /**
- * Get projects directory path
+ * Get daily notes directory path
+ */
+export async function getDailyNotesDir(): Promise<string> {
+  if (!dailyDir) {
+    dailyDir = await window.electronAPI.getDailyDir();
+  }
+  return dailyDir!;
+}
+
+/**
+ * Get projects directory path (now called notes)
  */
 export async function getProjectsDir(): Promise<string> {
-  const baseDir = await getNotesDirectory();
-  return join(baseDir, 'projects');
+  return await getNotesDirectory();
 }
 
 /**

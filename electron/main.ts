@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
 import { join } from 'path';
 import { promises as fs } from 'fs';
 import { homedir } from 'os';
@@ -10,19 +10,150 @@ const store = new Store();
 let mainWindow: BrowserWindow | null = null;
 let fileWatcher: chokidar.FSWatcher | null = null;
 
-const NOTES_DIR = join(homedir(), 'Documents', 'ADHDNotes');
-const DAILY_DIR = join(NOTES_DIR, 'daily');
-const PROJECTS_DIR = join(NOTES_DIR, 'projects');
+// Get default notes directory (for daily notes)
+function getDefaultNotesDir(): string {
+  return join(homedir(), 'Documents', 'ADHDNotes');
+}
+
+// Get custom notes directory from store (for project notes)
+function getCustomNotesDir(): string {
+  const stored = store.get('customNotesDir') as string;
+  return stored || getDefaultNotesDir();
+}
+
+let DEFAULT_DAILY_DIR = join(getDefaultNotesDir(), 'daily');
+let CUSTOM_NOTES_DIR = join(getCustomNotesDir(), 'notes');
+
+// Check if path is within allowed directories
+function isPathAllowed(filePath: string): boolean {
+  return filePath.startsWith(DEFAULT_DAILY_DIR) || filePath.startsWith(CUSTOM_NOTES_DIR);
+}
 
 // Ensure notes directories exist
 async function ensureDirectories() {
   try {
-    await fs.mkdir(DAILY_DIR, { recursive: true });
-    await fs.mkdir(PROJECTS_DIR, { recursive: true });
+    await fs.mkdir(DEFAULT_DAILY_DIR, { recursive: true });
+    await fs.mkdir(CUSTOM_NOTES_DIR, { recursive: true });
     console.log('Notes directories ensured');
   } catch (error) {
     console.error('Error creating directories:', error);
   }
+}
+
+// Update custom notes directory and restart file watcher
+async function updateCustomNotesDir(newDir: string) {
+  CUSTOM_NOTES_DIR = join(newDir, 'notes');
+
+  // Store the new directory
+  store.set('customNotesDir', newDir);
+
+  // Recreate directories if needed
+  await ensureDirectories();
+
+  // Restart file watcher
+  if (fileWatcher) {
+    fileWatcher.close();
+  }
+  setupFileWatcher();
+
+  // Notify renderer of directory change
+  mainWindow?.webContents.send('custom-notes-dir-changed', newDir);
+}
+
+// Create application menu
+function createMenu() {
+  const template: Electron.MenuItemConstructorOptions[] = [
+    {
+      label: 'File',
+      submenu: [
+        {
+          label: 'Open Folder...',
+          accelerator: 'CmdOrCtrl+O',
+          click: async () => {
+            const result = await dialog.showOpenDialog(mainWindow!, {
+              properties: ['openDirectory'],
+              title: 'Select Notes Directory'
+            });
+
+            if (!result.canceled && result.filePaths.length > 0) {
+              await updateCustomNotesDir(result.filePaths[0]);
+            }
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'Quit',
+          accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
+          click: () => {
+            app.quit();
+          }
+        }
+      ]
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'selectAll' }
+      ]
+    },
+    {
+      label: 'View',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forceReload' },
+        { role: 'toggleDevTools' },
+        { type: 'separator' },
+        { role: 'resetZoom' },
+        { role: 'zoomIn' },
+        { role: 'zoomOut' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' }
+      ]
+    },
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' },
+        { role: 'close' }
+      ]
+    }
+  ];
+
+  // macOS specific menu adjustments
+  if (process.platform === 'darwin') {
+    template.unshift({
+      label: app.getName(),
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        { role: 'services', submenu: [] },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' }
+      ]
+    });
+
+    // Window menu
+    template[4].submenu = [
+      { role: 'close' },
+      { role: 'minimize' },
+      { role: 'zoom' },
+      { type: 'separator' },
+      { role: 'front' }
+    ];
+  }
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
 }
 
 // Create main window
@@ -65,7 +196,9 @@ function createWindow() {
 
 // Setup file watcher
 function setupFileWatcher() {
-  fileWatcher = chokidar.watch(NOTES_DIR, {
+  // Watch both daily and custom notes directories
+  const watchPaths = [DEFAULT_DAILY_DIR, CUSTOM_NOTES_DIR];
+  fileWatcher = chokidar.watch(watchPaths, {
     ignored: /(^|[\/\\])\../, // ignore dotfiles
     persistent: true,
     ignoreInitial: true
@@ -84,15 +217,19 @@ function setupFileWatcher() {
 }
 
 // IPC Handlers
+ipcMain.handle('get-daily-dir', () => {
+  return DEFAULT_DAILY_DIR;
+});
+
 ipcMain.handle('get-notes-dir', () => {
-  return NOTES_DIR;
+  return CUSTOM_NOTES_DIR;
 });
 
 ipcMain.handle('read-file', async (_, filePath: string) => {
   try {
-    // Security: Ensure path is within notes directory
-    if (!filePath.startsWith(NOTES_DIR)) {
-      throw new Error('Access denied: Path outside notes directory');
+    // Security: Ensure path is within allowed directories
+    if (!isPathAllowed(filePath)) {
+      throw new Error('Access denied: Path outside allowed directories');
     }
     const content = await fs.readFile(filePath, 'utf-8');
     return { success: true, content };
@@ -103,9 +240,9 @@ ipcMain.handle('read-file', async (_, filePath: string) => {
 
 ipcMain.handle('write-file', async (_, filePath: string, content: string) => {
   try {
-    // Security: Ensure path is within notes directory
-    if (!filePath.startsWith(NOTES_DIR)) {
-      throw new Error('Access denied: Path outside notes directory');
+    // Security: Ensure path is within allowed directories
+    if (!isPathAllowed(filePath)) {
+      throw new Error('Access denied: Path outside allowed directories');
     }
 
     // Ensure parent directory exists
@@ -121,9 +258,9 @@ ipcMain.handle('write-file', async (_, filePath: string, content: string) => {
 
 ipcMain.handle('list-files', async (_, dirPath: string) => {
   try {
-    // Security: Ensure path is within notes directory
-    if (!dirPath.startsWith(NOTES_DIR)) {
-      throw new Error('Access denied: Path outside notes directory');
+    // Security: Ensure path is within allowed directories
+    if (!isPathAllowed(dirPath)) {
+      throw new Error('Access denied: Path outside allowed directories');
     }
 
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
@@ -148,9 +285,9 @@ ipcMain.handle('list-files', async (_, dirPath: string) => {
 
 ipcMain.handle('delete-file', async (_, filePath: string) => {
   try {
-    // Security: Ensure path is within notes directory
-    if (!filePath.startsWith(NOTES_DIR)) {
-      throw new Error('Access denied: Path outside notes directory');
+    // Security: Ensure path is within allowed directories
+    if (!isPathAllowed(filePath)) {
+      throw new Error('Access denied: Path outside allowed directories');
     }
 
     // Use fs.rm for both files and directories (recursive for directories)
@@ -163,9 +300,9 @@ ipcMain.handle('delete-file', async (_, filePath: string) => {
 
 ipcMain.handle('create-folder', async (_, dirPath: string) => {
   try {
-    // Security: Ensure path is within notes directory
-    if (!dirPath.startsWith(NOTES_DIR)) {
-      throw new Error('Access denied: Path outside notes directory');
+    // Security: Ensure path is within allowed directories
+    if (!isPathAllowed(dirPath)) {
+      throw new Error('Access denied: Path outside allowed directories');
     }
 
     await fs.mkdir(dirPath, { recursive: true });
@@ -177,9 +314,9 @@ ipcMain.handle('create-folder', async (_, dirPath: string) => {
 
 ipcMain.handle('rename-file', async (_, oldPath: string, newPath: string) => {
   try {
-    // Security: Ensure paths are within notes directory
-    if (!oldPath.startsWith(NOTES_DIR) || !newPath.startsWith(NOTES_DIR)) {
-      throw new Error('Access denied: Path outside notes directory');
+    // Security: Ensure paths are within allowed directories
+    if (!isPathAllowed(oldPath) || !isPathAllowed(newPath)) {
+      throw new Error('Access denied: Path outside allowed directories');
     }
 
     await fs.rename(oldPath, newPath);
@@ -191,9 +328,9 @@ ipcMain.handle('rename-file', async (_, oldPath: string, newPath: string) => {
 
 ipcMain.handle('copy-file', async (_, sourcePath: string, destPath: string) => {
   try {
-    // Security: Ensure paths are within notes directory
-    if (!sourcePath.startsWith(NOTES_DIR) || !destPath.startsWith(NOTES_DIR)) {
-      throw new Error('Access denied: Path outside notes directory');
+    // Security: Ensure paths are within allowed directories
+    if (!isPathAllowed(sourcePath) || !isPathAllowed(destPath)) {
+      throw new Error('Access denied: Path outside allowed directories');
     }
 
     // Ensure destination directory exists
@@ -209,15 +346,32 @@ ipcMain.handle('copy-file', async (_, sourcePath: string, destPath: string) => {
 
 ipcMain.handle('file-exists', async (_, filePath: string) => {
   try {
-    // Security: Ensure path is within notes directory
-    if (!filePath.startsWith(NOTES_DIR)) {
-      throw new Error('Access denied: Path outside notes directory');
+    // Security: Ensure path is within allowed directories
+    if (!isPathAllowed(filePath)) {
+      throw new Error('Access denied: Path outside allowed directories');
     }
 
     await fs.access(filePath);
     return { success: true, exists: true };
   } catch {
     return { success: true, exists: false };
+  }
+});
+
+ipcMain.handle('read-image-file', async (_, filePath: string) => {
+  try {
+    // Security: Ensure path is within allowed directories
+    if (!isPathAllowed(filePath)) {
+      throw new Error('Access denied: Path outside allowed directories');
+    }
+
+    const buffer = await fs.readFile(filePath);
+    const ext = filePath.split('.').pop()?.toLowerCase() || 'png';
+    const mimeType = `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+    const dataUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
+    return { success: true, dataUrl };
+  } catch (error: any) {
+    return { success: false, error: error.message };
   }
 });
 
@@ -231,15 +385,26 @@ ipcMain.handle('store-set', (_, key: string, value: any) => {
   return { success: true };
 });
 
-ipcMain.handle('store-delete', (_, key: string) => {
-  store.delete(key);
-  return { success: true };
+ipcMain.handle('open-folder-dialog', async () => {
+  const result = await dialog.showOpenDialog(mainWindow!, {
+    properties: ['openDirectory'],
+    title: 'Select Notes Directory'
+  });
+
+  if (!result.canceled && result.filePaths.length > 0) {
+    const newDir = result.filePaths[0];
+    await updateCustomNotesDir(newDir);
+    return { success: true, directory: newDir };
+  }
+
+  return { success: false };
 });
 
 // App lifecycle
 app.whenReady().then(async () => {
   await ensureDirectories();
   createWindow();
+  createMenu();
   setupFileWatcher();
 
   app.on('activate', () => {
