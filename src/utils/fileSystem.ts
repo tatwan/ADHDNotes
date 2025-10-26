@@ -90,12 +90,15 @@ export async function listFiles(dirPath: string): Promise<FileSystemResult<FileT
  */
 export async function deleteFile(filePath: string): Promise<FileSystemResult> {
   try {
+    console.log('Attempting to delete:', filePath);
     const result = await window.electronAPI.deleteFile(filePath);
+    console.log('Delete result:', result);
     if (result.success) {
       return { success: true };
     }
     return { success: false, error: result.error || 'Failed to delete file' };
   } catch (error: any) {
+    console.error('Delete error:', error);
     return { success: false, error: error.message };
   }
 }

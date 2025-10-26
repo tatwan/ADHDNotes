@@ -153,7 +153,8 @@ ipcMain.handle('delete-file', async (_, filePath: string) => {
       throw new Error('Access denied: Path outside notes directory');
     }
 
-    await fs.unlink(filePath);
+    // Use fs.rm for both files and directories (recursive for directories)
+    await fs.rm(filePath, { recursive: true, force: true });
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
