@@ -257,6 +257,11 @@ declare global {
         themes: Array<{ name: string; file: string }>;
         error?: string;
       }>;
+      readThemeFile: (fileName: string) => Promise<{
+        success: boolean;
+        content?: string;
+        error?: string;
+      }>;
     };
   }
 }

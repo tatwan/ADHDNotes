@@ -44,22 +44,44 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
     // Load theme CSS dynamically
     if (currentTheme.file) {
-      const linkId = 'theme-stylesheet';
-      let link = document.getElementById(linkId) as HTMLLinkElement;
+      const loadTheme = async () => {
+        try {
+          const result = await window.electronAPI.readThemeFile(currentTheme.file);
+          if (result.success && result.content) {
+            const styleId = 'theme-stylesheet';
+            let style = document.getElementById(styleId) as HTMLStyleElement;
 
-      if (!link) {
-        link = document.createElement('link');
-        link.id = linkId;
-        link.rel = 'stylesheet';
-        document.head.appendChild(link);
-      }
+            if (!style) {
+              style = document.createElement('style');
+              style.id = styleId;
+              document.head.appendChild(style);
+            }
 
-      link.href = `/themes/${currentTheme.file}`;
+            style.textContent = result.content;
+          } else {
+            console.error('Failed to load theme:', result.error);
+            // Remove theme stylesheet for default theme
+            const style = document.getElementById('theme-stylesheet');
+            if (style) {
+              style.remove();
+            }
+          }
+        } catch (error) {
+          console.error('Error loading theme:', error);
+          // Remove theme stylesheet for default theme
+          const style = document.getElementById('theme-stylesheet');
+          if (style) {
+            style.remove();
+          }
+        }
+      };
+
+      loadTheme();
     } else {
       // Remove theme stylesheet for default theme
-      const link = document.getElementById('theme-stylesheet');
-      if (link) {
-        link.remove();
+      const style = document.getElementById('theme-stylesheet');
+      if (style) {
+        style.remove();
       }
     }
   }, [currentTheme]);

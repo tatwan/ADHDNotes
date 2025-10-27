@@ -54,7 +54,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   // Theme operations
-  listThemes: () => ipcRenderer.invoke('list-themes')
+  listThemes: () => ipcRenderer.invoke('list-themes'),
+  readThemeFile: (fileName: string) => ipcRenderer.invoke('read-theme-file', fileName)
 });
 
 // Type definition for window.electronAPI
@@ -97,6 +98,11 @@ declare global {
       listThemes: () => Promise<{
         success: boolean;
         themes: Array<{ name: string; file: string }>;
+        error?: string;
+      }>;
+      readThemeFile: (fileName: string) => Promise<{
+        success: boolean;
+        content?: string;
         error?: string;
       }>;
     };

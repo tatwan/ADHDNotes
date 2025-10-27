@@ -39,11 +39,45 @@ function isPathAllowed(filePath: string): boolean {
   return filePath.startsWith(DEFAULT_DAILY_DIR) || filePath.startsWith(CUSTOM_NOTES_DIR);
 }
 
+// Copy default themes to user themes directory on first run
+async function copyDefaultThemes() {
+  const userThemesDir = join(getDefaultNotesDir(), 'themes');
+  let bundledThemesDir: string;
+
+  if (process.env.NODE_ENV === 'development') {
+    bundledThemesDir = join(process.cwd(), 'public', 'themes');
+  } else {
+    bundledThemesDir = join(__dirname, '../themes');
+  }
+
+  try {
+    await fs.mkdir(userThemesDir, { recursive: true });
+
+    const files = await fs.readdir(bundledThemesDir);
+    for (const file of files) {
+      if (file.endsWith('.css') && file !== 'theme-bridge.css' && !file.startsWith('.')) {
+        const source = join(bundledThemesDir, file);
+        const dest = join(userThemesDir, file);
+        try {
+          await fs.access(dest);
+          // File exists, skip
+        } catch {
+          // File doesn't exist, copy it
+          await fs.copyFile(source, dest);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error copying default themes:', error);
+  }
+}
+
 // Ensure notes directories exist
 async function ensureDirectories() {
   try {
     await fs.mkdir(DEFAULT_DAILY_DIR, { recursive: true });
     await fs.mkdir(CUSTOM_NOTES_DIR, { recursive: true });
+    await copyDefaultThemes();
     console.log('Notes directories ensured');
   } catch (error) {
     console.error('Error creating directories:', error);
@@ -416,15 +450,10 @@ ipcMain.handle('store-set', (_, key: string, value: any) => {
 // Theme handlers
 ipcMain.handle('list-themes', async () => {
   try {
-    // Determine themes folder path
-    let themesPath: string;
-    if (process.env.NODE_ENV === 'development') {
-      // In development, themes are in public/themes
-      themesPath = join(process.cwd(), 'public', 'themes');
-    } else {
-      // In production, themes are bundled in dist/themes
-      themesPath = join(__dirname, '../themes');
-    }
+    const themesPath = join(getDefaultNotesDir(), 'themes');
+
+    // Ensure themes directory exists
+    await fs.mkdir(themesPath, { recursive: true });
 
     // List all .css files in themes directory (excluding theme-bridge.css)
     const files = await fs.readdir(themesPath);
@@ -446,6 +475,23 @@ ipcMain.handle('list-themes', async () => {
   } catch (error) {
     console.error('Error listing themes:', error);
     return { success: false, error: 'Failed to list themes', themes: [] };
+  }
+});
+
+ipcMain.handle('read-theme-file', async (_, fileName: string) => {
+  try {
+    const themesPath = join(getDefaultNotesDir(), 'themes');
+    const filePath = join(themesPath, fileName);
+
+    // Security: Ensure path is within themes directory
+    if (!filePath.startsWith(themesPath)) {
+      throw new Error('Access denied: Path outside themes directory');
+    }
+
+    const content = await fs.readFile(filePath, 'utf-8');
+    return { success: true, content };
+  } catch (error: any) {
+    return { success: false, error: error.message };
   }
 });
 
