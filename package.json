@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Local-first markdown notes with forced daily task prioritization for ADHD users",
   "main": "dist-electron/main.js",
-  "author": "Your Name",
+  "author": "Tarek Atwan",
   "license": "MIT",
   "private": true,
   "scripts": {

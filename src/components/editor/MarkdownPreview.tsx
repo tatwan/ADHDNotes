@@ -142,14 +142,19 @@ const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange, currentFile
     );
   };
 
-  // Preprocess content to convert HTML img tags to markdown img syntax
+  // Preprocess content to convert HTML img tags to markdown img syntax and handle highlight syntax
   const preprocessContent = (content: string) => {
     // Convert HTML img tags to markdown img syntax
-    return content.replace(/<img\s+src="([^"]*)"(?:\s+alt="([^"]*)")?(?:\s+title="([^"]*)")?\s*\/?>/gi, (_, src, alt, title) => {
+    let processed = content.replace(/<img\s+src="([^"]*)"(?:\s+alt="([^"]*)")?(?:\s+title="([^"]*)")?\s*\/?>/gi, (_, src, alt, title) => {
       const altText = alt || '';
       const titleText = title ? ` "${title}"` : '';
       return `![${altText}](${src}${titleText})`;
     });
+
+    // Convert ==highlight== syntax to <mark> tags
+    processed = processed.replace(/==([^=]+)==/g, '<mark>$1</mark>');
+
+    return processed;
   };
 
   const processedContent = preprocessContent(content);
@@ -198,96 +203,8 @@ const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange, currentFile
       fontSize={`${fontSize}px`}
       onClick={handleContainerClick}
       sx={{
-        '& h1': {
-          fontSize: '2em',
-          fontWeight: 'bold',
-          marginTop: '0.67em',
-          marginBottom: '0.67em',
-          borderBottom: '1px solid #e2e8f0',
-          paddingBottom: '0.3em'
-        },
-        '& h2': {
-          fontSize: '1.5em',
-          fontWeight: 'bold',
-          marginTop: '0.83em',
-          marginBottom: '0.83em',
-          borderBottom: '1px solid #e2e8f0',
-          paddingBottom: '0.3em'
-        },
-        '& h3': {
-          fontSize: '1.17em',
-          fontWeight: 'bold',
-          marginTop: '1em',
-          marginBottom: '1em'
-        },
-        '& p': {
-          marginTop: '0',
-          marginBottom: '1em',
-          lineHeight: '1.6'
-        },
-        '& ul, & ol': {
-          paddingLeft: '2em',
-          marginBottom: '1em'
-        },
-        '& li': {
-          marginBottom: '0.5em',
-          lineHeight: '1.6'
-        },
-        '& code': {
-          backgroundColor: '#f6f8fa',
-          padding: '0.2em 0.4em',
-          borderRadius: '3px',
-          fontSize: '0.9em',
-          fontFamily: "'Fira Code', 'JetBrains Mono', monospace"
-        },
-        '& pre': {
-          backgroundColor: '#f6f8fa',
-          padding: '1em',
-          borderRadius: '6px',
-          overflow: 'auto',
-          marginBottom: '1em'
-        },
-        '& pre code': {
-          backgroundColor: 'transparent',
-          padding: '0',
-          fontSize: '0.9em'
-        },
-        '& blockquote': {
-          borderLeft: '4px solid #dfe2e5',
-          paddingLeft: '1em',
-          color: '#6a737d',
-          marginBottom: '1em',
-          marginLeft: '0'
-        },
-        '& table': {
-          borderCollapse: 'collapse',
-          marginBottom: '1em',
-          width: '100%'
-        },
-        '& th, & td': {
-          border: '1px solid #dfe2e5',
-          padding: '0.5em 1em'
-        },
-        '& th': {
-          backgroundColor: '#f6f8fa',
-          fontWeight: 'bold'
-        },
-        '& a': {
-          color: '#2196F3',
-          textDecoration: 'none',
-          '&:hover': {
-            textDecoration: 'underline'
-          }
-        },
-        '& hr': {
-          border: 'none',
-          borderTop: '1px solid #e2e8f0',
-          marginTop: '2em',
-          marginBottom: '2em'
-        },
+        // Basic styles that themes can override
         '& input[type="checkbox"]': {
-          marginRight: '0.5em',
-          cursor: 'pointer',
           pointerEvents: 'auto !important'
         },
         '& input[type="checkbox"][disabled]': {
@@ -295,24 +212,31 @@ const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange, currentFile
         },
         '& .task-list-item input[type="checkbox"]': {
           pointerEvents: 'auto !important'
-        },
-        '& img': {
-          maxWidth: '100%',
-          height: 'auto',
-          borderRadius: '4px',
-          margin: '0.5em 0',
-          display: 'block'
-        },
-        '& img[style*="zoom"]': {
-          transformOrigin: 'top left'
         }
       }}
     >
       <ReactMarkdown
+        key={content}
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
         components={{
-          img: ImageComponent
+          img: ImageComponent,
+          code: ({ node, inline, className, children, ...props }: any) => {
+            // For code blocks (not inline code), add md-fences class
+            if (!inline) {
+              return (
+                <code className={`md-fences ${className || ''}`} {...props}>
+                  {children}
+                </code>
+              );
+            }
+            // For inline code, render normally
+            return (
+              <code className={className} {...props}>
+                {children}
+              </code>
+            );
+          }
         }}
       >
         {processedContent}

@@ -18,6 +18,19 @@ const MarkdownEditor = () => {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Check if current note is a past daily note (read-only)
+  const isPastDate = () => {
+    if (!currentNote || !('date' in currentNote)) return false;
+    const noteDate = new Date(currentNote.date);
+    const today = new Date();
+    // Reset time to start of day for accurate comparison
+    noteDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    return noteDate < today;
+  };
+
+  const isReadOnly = isPastDate();
+
   // Initialize CodeMirror editor
   useEffect(() => {
     if (!editorRef.current || editorViewRef.current) return;
@@ -89,7 +102,12 @@ const MarkdownEditor = () => {
         setHasUnsavedChanges(false);
       }
     }
-  }, [currentNote?.id]);
+
+    // Force preview mode for past dates
+    if (isReadOnly) {
+      setIsPreviewMode(true);
+    }
+  }, [currentNote?.id, isReadOnly]);
 
   // When the note content changes externally (for example via preview toggles),
   // update the editor view without clearing the unsaved flag.
@@ -124,6 +142,10 @@ const MarkdownEditor = () => {
   };
 
   const togglePreviewMode = () => {
+    // Don't allow toggling to edit mode for past dates
+    if (isReadOnly && !isPreviewMode) {
+      return;
+    }
     setIsPreviewMode(!isPreviewMode);
   };
 
@@ -226,7 +248,12 @@ const MarkdownEditor = () => {
                 Unsaved changes
               </Text>
             )}
-            {isPreviewMode && (
+            {isReadOnly && (
+              <Badge colorScheme="gray" fontSize="xs">
+                Read-Only (Past Date)
+              </Badge>
+            )}
+            {isPreviewMode && !isReadOnly && (
               <Badge colorScheme="purple" fontSize="xs">
                 Preview Mode
               </Badge>
@@ -244,7 +271,14 @@ const MarkdownEditor = () => {
               onClick={toggleSidebar}
             />
           </Tooltip>
-          <Tooltip label={isPreviewMode ? 'Edit Mode (Cmd+/)' : 'Preview Mode (Cmd+/)'} fontSize="xs">
+          <Tooltip
+            label={
+              isReadOnly
+                ? 'Cannot edit past dates'
+                : (isPreviewMode ? 'Edit Mode (Cmd+/)' : 'Preview Mode (Cmd+/)')
+            }
+            fontSize="xs"
+          >
             <IconButton
               aria-label="Toggle preview"
               icon={isPreviewMode ? <FiEdit3 /> : <FiEye />}
@@ -252,6 +286,8 @@ const MarkdownEditor = () => {
               variant={isPreviewMode ? 'solid' : 'outline'}
               colorScheme={isPreviewMode ? 'purple' : 'gray'}
               onClick={togglePreviewMode}
+              isDisabled={isReadOnly && isPreviewMode}
+              opacity={isReadOnly ? 0.5 : 1}
             />
           </Tooltip>
           <Button
@@ -259,7 +295,7 @@ const MarkdownEditor = () => {
             size="sm"
             colorScheme="brand"
             onClick={handleManualSave}
-            isDisabled={!hasUnsavedChanges}
+            isDisabled={!hasUnsavedChanges || isReadOnly}
           >
             Save
           </Button>

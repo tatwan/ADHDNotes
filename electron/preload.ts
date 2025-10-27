@@ -51,7 +51,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.removeAllListeners('file-added');
     ipcRenderer.removeAllListeners('file-changed');
     ipcRenderer.removeAllListeners('file-deleted');
-  }
+  },
+
+  // Theme operations
+  listThemes: () => ipcRenderer.invoke('list-themes')
 });
 
 // Type definition for window.electronAPI
@@ -91,6 +94,11 @@ declare global {
       onFileDeleted: (callback: (filePath: string) => void) => void;
       onNotesDirChanged: (callback: (newDir: string) => void) => void;
       removeFileListeners: () => void;
+      listThemes: () => Promise<{
+        success: boolean;
+        themes: Array<{ name: string; file: string }>;
+        error?: string;
+      }>;
     };
   }
 }

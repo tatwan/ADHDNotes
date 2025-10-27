@@ -14,11 +14,13 @@ import {
   Divider
 } from '@chakra-ui/react';
 import { useAppStore } from '@stores/appStore';
+import { useNoteStore } from '@stores/noteStore';
 import { FiArrowRight, FiX, FiCheckCircle, FiTrash2 } from 'react-icons/fi';
 import { parseDateFromFileName, formatDateForDisplay } from '@utils/dateUtils';
 
 const MigrationModal = () => {
   const { migrationQueue, processMigrationDecision, processAllMigrationDecisions } = useAppStore();
+  const { currentDate } = useNoteStore();
 
   const total = migrationQueue.length;
   const currentTask = migrationQueue[0];
@@ -44,6 +46,8 @@ const MigrationModal = () => {
 
   const progressPercent = total > 0 ? ((total - migrationQueue.length) / total) * 100 : 0;
   const originalDate = parseDateFromFileName(currentTask.originalDate);
+  const targetDate = currentDate;
+  const targetDateFormatted = formatDateForDisplay(targetDate);
 
   return (
     <Modal
@@ -59,10 +63,10 @@ const MigrationModal = () => {
         <ModalHeader>
           <VStack align="stretch" spacing={2}>
             <Text fontSize="2xl" fontWeight="bold">
-              Review Yesterday's Tasks
+              Review Previous Tasks
             </Text>
             <Text fontSize="md" fontWeight="normal" color="gray.600">
-              {formatDateForDisplay(originalDate)}
+              From {formatDateForDisplay(originalDate)}
             </Text>
 
             {/* Progress */}
@@ -128,7 +132,7 @@ const MigrationModal = () => {
                 width="100%"
                 onClick={handleMoveToToday}
               >
-                Move to Today
+                Move to {targetDateFormatted}
               </Button>
 
               <Button

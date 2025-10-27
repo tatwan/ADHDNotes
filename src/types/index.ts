@@ -219,6 +219,7 @@ export const TIME_PATTERN = /(\d{1,2}):(\d{2})/;
 declare global {
   interface Window {
     electronAPI: {
+      getDailyDir: () => Promise<string>;
       getNotesDir: () => Promise<string>;
       readFile: (filePath: string) => Promise<{ success: boolean; content?: string; error?: string }>;
       writeFile: (filePath: string, content: string) => Promise<{ success: boolean; error?: string }>;
@@ -238,13 +239,24 @@ declare global {
       fileExists: (filePath: string) => Promise<{ success: boolean; exists: boolean }>;
       copyFile: (sourcePath: string, destPath: string) => Promise<{ success: boolean; error?: string }>;
       readImageFile: (filePath: string) => Promise<{ success: boolean; dataUrl?: string; error?: string }>;
+      openFolderDialog: () => Promise<{ success: boolean; directory?: string }>;
+      path: {
+        dirname: (filePath: string) => Promise<string>;
+        resolve: (...paths: string[]) => Promise<string>;
+      };
       storeGet: (key: string) => Promise<any>;
       storeSet: (key: string, value: any) => Promise<{ success: boolean }>;
       storeDelete: (key: string) => Promise<{ success: boolean }>;
       onFileAdded: (callback: (filePath: string) => void) => void;
       onFileChanged: (callback: (filePath: string) => void) => void;
       onFileDeleted: (callback: (filePath: string) => void) => void;
+      onNotesDirChanged: (callback: (newDir: string) => void) => void;
       removeFileListeners: () => void;
+      listThemes: () => Promise<{
+        success: boolean;
+        themes: Array<{ name: string; file: string }>;
+        error?: string;
+      }>;
     };
   }
 }

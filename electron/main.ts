@@ -413,6 +413,42 @@ ipcMain.handle('store-set', (_, key: string, value: any) => {
   return { success: true };
 });
 
+// Theme handlers
+ipcMain.handle('list-themes', async () => {
+  try {
+    // Determine themes folder path
+    let themesPath: string;
+    if (process.env.NODE_ENV === 'development') {
+      // In development, themes are in public/themes
+      themesPath = join(process.cwd(), 'public', 'themes');
+    } else {
+      // In production, themes are bundled in dist/themes
+      themesPath = join(__dirname, '../themes');
+    }
+
+    // List all .css files in themes directory (excluding theme-bridge.css)
+    const files = await fs.readdir(themesPath);
+    const cssFiles = files.filter(file =>
+      file.endsWith('.css') &&
+      file !== 'theme-bridge.css' &&
+      !file.startsWith('.')
+    );
+
+    // Return theme objects
+    const themes = cssFiles.map(file => ({
+      name: file.replace('.css', '').split('-').map(word =>
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' '),
+      file: file
+    }));
+
+    return { success: true, themes };
+  } catch (error) {
+    console.error('Error listing themes:', error);
+    return { success: false, error: 'Failed to list themes', themes: [] };
+  }
+});
+
 ipcMain.handle('open-folder-dialog', async () => {
   const result = await dialog.showOpenDialog(mainWindow!, {
     properties: ['openDirectory', 'createDirectory'],

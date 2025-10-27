@@ -8,6 +8,7 @@ import AppLayout from '@components/layout/AppLayout';
 import MigrationModal from '@components/modals/MigrationModal';
 import { createTimeString } from '@utils/dateUtils';
 import { useFileWatcher } from '@hooks/useFileWatcher';
+import { ThemeProvider } from '@contexts/ThemeContext';
 
 function App() {
   const { initialize, isInitialized, showMigrationModal } = useAppStore();
@@ -62,10 +63,12 @@ function App() {
   }
 
   return (
-    <DndContext onDragEnd={handleDragEnd}>
-      <AppLayout />
-      {showMigrationModal && <MigrationModal />}
-    </DndContext>
+    <ThemeProvider>
+      <DndContext onDragEnd={handleDragEnd}>
+        <AppLayout />
+        {showMigrationModal && <MigrationModal />}
+      </DndContext>
+    </ThemeProvider>
   );
 }
 

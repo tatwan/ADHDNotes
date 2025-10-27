@@ -1,0 +1,50 @@
+/**
+ * Theme Bridge CSS
+ *
+ * This stylesheet bridges the gap between Typora-style themes (like mine.css)
+ * and react-markdown's output structure. It maps Typora classes to standard
+ * markdown HTML elements.
+ */
+
+/* Map react-markdown's code blocks to Typora's .md-fences class */
+.markdown-preview pre {
+  /* Inherit styles that would apply to .md-fences */
+  margin-bottom: 15px;
+  margin-top: 15px;
+  padding-top: 8px;
+  padding-bottom: 6px;
+}
+
+.markdown-preview pre > code {
+  /* Apply .md-fences styles to code blocks */
+  display: block;
+  color: #ffffff;
+  border: 1.5px solid var(--border, #e1e4e8);
+  background-color: #303841;
+  border-radius: 4px;
+  padding: 12px;
+  font-size: 0.9em;
+  font-family: var(--mono-font, 'JetBrains Mono', 'Cascadia Mono', 'Cascadia Code', monospace);
+  font-variant-ligatures: common-ligatures;
+  font-feature-settings: "liga" 1;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+
+/* Ensure inline code doesn't get block styles */
+.markdown-preview :not(pre) > code {
+  display: inline;
+  background-color: #d9dfe6;
+  color: rgba(41, 4, 4, 0.886);
+  padding: 0 2px 0 2px;
+  border: none;
+}
+
+/* Support for highlight syntax (==text==) */
+.markdown-preview mark {
+  background-color: var(--mark-bg, #ffde67);
+  color: var(--mark-text, #000000);
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: 0 2px;
+}

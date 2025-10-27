@@ -47,7 +47,8 @@ export default defineConfig({
       '@stores': resolve(__dirname, './src/stores'),
       '@utils': resolve(__dirname, './src/utils'),
       '@types': resolve(__dirname, './src/types'),
-      '@hooks': resolve(__dirname, './src/hooks')
+      '@hooks': resolve(__dirname, './src/hooks'),
+      '@contexts': resolve(__dirname, './src/contexts')
     }
   },
   server: {
