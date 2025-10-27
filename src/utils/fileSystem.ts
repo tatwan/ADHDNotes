@@ -22,7 +22,15 @@ export async function getNotesDirectory(): Promise<string> {
  * Update notes directory (called when user selects new directory)
  */
 export function updateNotesDirectory(newDir: string) {
-  notesDir = join(newDir, 'notes');
+  // Check if the directory itself is named "Notes" or has a Notes subfolder
+  const dirName = newDir.split('/').pop() || '';
+  if (dirName === 'Notes') {
+    // The selected directory is already the Notes folder
+    notesDir = newDir;
+  } else {
+    // Use Notes subfolder within the selected directory
+    notesDir = join(newDir, 'Notes');
+  }
 }
 
 /**

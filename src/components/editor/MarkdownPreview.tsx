@@ -9,125 +9,138 @@ interface MarkdownPreviewProps {
   content: string;
   fontSize?: number;
   onCheckboxChange?: (text: string, checked: boolean) => void;
+  currentFilePath?: string;
 }
 
-// React-friendly Image component: resolves local images via IPC and avoids direct DOM mutations
-const ImageComponent = ({ src, alt, title, ...props }: any) => {
-  const [dataSrc, setDataSrc] = useState<string | null>(null);
-  const [failed, setFailed] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      if (!src) {
-        setLoading(false);
-        return;
-      }
-
-      // If it's already an absolute URL or data URL, use it directly
-      if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:')) {
-        setDataSrc(src);
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        // Try resolving relative to the configured notes directory
-        const notesDir = await window.electronAPI.getNotesDir();
-        const fullPath = src.startsWith('/') ? src : `${notesDir}/${src}`;
-
-        console.log('Loading image:', src, '->', fullPath);
-        const res = await window.electronAPI.readImageFile(fullPath);
-        console.log('Image load result:', res.success, res.dataUrl ? 'has dataUrl' : 'no dataUrl');
-
-        if (!cancelled) {
-          if (res.success && res.dataUrl) {
-            setDataSrc(res.dataUrl);
-          } else {
-            setFailed(true);
-          }
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error('Failed to load image:', src, err);
-        if (!cancelled) {
-          setFailed(true);
-          setLoading(false);
-        }
-      }
-    };
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [src]);
-
-  // Parse inline zoom style (e.g. style="zoom:23%") from props.style and convert to transform
-  const style: any = {};
-  if (props?.style && typeof props.style === 'string' && props.style.includes('zoom:')) {
-    const zoomMatch = (props.style as string).match(/zoom:\s*(\d+(?:\.\d+)?)%?/);
-    if (zoomMatch) {
-      const zoomValue = parseFloat(zoomMatch[1]) / 100;
-      style.transform = `scale(${zoomValue})`;
-      style.transformOrigin = 'top left';
-    }
-  }
-
-  if (failed) {
-    return (
-      <div
-        style={{
-          padding: '1em',
-          background: '#f7fafc',
-          border: '1px solid #e1e4e8',
-          borderRadius: 4,
-          color: '#586069',
-          fontSize: '0.9em',
-          margin: '0.5em 0'
-        }}
-        title={title}
-      >
-        📷 Image not found: {alt || src}
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div
-        style={{
-          padding: '1em',
-          background: '#f7fafc',
-          border: '1px solid #e1e4e8',
-          borderRadius: 4,
-          color: '#586069',
-          fontSize: '0.9em',
-          margin: '0.5em 0'
-        }}
-        title={title}
-      >
-        📷 Loading image...
-      </div>
-    );
-  }
-
-  return (
-    <img
-      src={dataSrc || ''}
-      alt={alt || ''}
-      title={title}
-      style={{ maxWidth: '100%', height: 'auto', borderRadius: 4, margin: '0.5em 0', display: 'block', ...style }}
-      onError={() => setFailed(true)}
-      {...props}
-    />
-  );
-};
-
-const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange }: MarkdownPreviewProps) => {
+const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange, currentFilePath }: MarkdownPreviewProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // React-friendly Image component: resolves local images via IPC and avoids direct DOM mutations
+  const ImageComponent = ({ src, alt, title, ...props }: any) => {
+    const [dataSrc, setDataSrc] = useState<string | null>(null);
+    const [failed, setFailed] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+      let cancelled = false;
+      const load = async () => {
+        if (!src) {
+          setLoading(false);
+          return;
+        }
+
+        // If it's already an absolute URL or data URL, use it directly
+        if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:')) {
+          setDataSrc(src);
+          setLoading(false);
+          return;
+        }
+
+        setLoading(true);
+        try {
+          let fullPath: string;
+
+          if (src.startsWith('/')) {
+            // Absolute path within notes directory
+            const notesDir = await window.electronAPI.getNotesDir();
+            fullPath = `${notesDir}${src}`;
+          } else {
+            // Relative path - resolve relative to current note's directory if available
+            if (currentFilePath) {
+              const noteDir = await window.electronAPI.path.dirname(currentFilePath);
+              fullPath = await window.electronAPI.path.resolve(noteDir, src);
+            } else {
+              // Fallback to notes directory
+              const notesDir = await window.electronAPI.getNotesDir();
+              fullPath = `${notesDir}/${src}`;
+            }
+          }
+
+          const res = await window.electronAPI.readImageFile(fullPath);
+
+          if (!cancelled) {
+            if (res.success && res.dataUrl) {
+              setDataSrc(res.dataUrl);
+            } else {
+              setFailed(true);
+            }
+            setLoading(false);
+          }
+        } catch (err) {
+          console.error('Failed to load image:', src, err);
+          if (!cancelled) {
+            setFailed(true);
+            setLoading(false);
+          }
+        }
+      };
+
+      load();
+      return () => {
+        cancelled = true;
+      };
+    }, [src, currentFilePath]);
+
+    // Parse inline zoom style (e.g. style="zoom:23%") from props.style and convert to transform
+    const style: any = {};
+    if (props?.style && typeof props.style === 'string' && props.style.includes('zoom:')) {
+      const zoomMatch = (props.style as string).match(/zoom:\s*(\d+(?:\.\d+)?)%?/);
+      if (zoomMatch) {
+        const zoomValue = parseFloat(zoomMatch[1]) / 100;
+        style.transform = `scale(${zoomValue})`;
+        style.transformOrigin = 'top left';
+      }
+    }
+
+    if (failed) {
+      return (
+        <div
+          style={{
+            padding: '1em',
+            background: '#f7fafc',
+            border: '1px solid #e1e4e8',
+            borderRadius: 4,
+            color: '#586069',
+            fontSize: '0.9em',
+            margin: '0.5em 0'
+          }}
+          title={title}
+        >
+          📷 Image not found: {alt || src}
+        </div>
+      );
+    }
+
+    if (loading) {
+      return (
+        <div
+          style={{
+            padding: '1em',
+            background: '#f7fafc',
+            border: '1px solid #e1e4e8',
+            borderRadius: 4,
+            color: '#586069',
+            fontSize: '0.9em',
+            margin: '0.5em 0'
+          }}
+          title={title}
+        >
+          📷 Loading image...
+        </div>
+      );
+    }
+
+    return (
+      <img
+        src={dataSrc || ''}
+        alt={alt || ''}
+        title={title}
+        style={{ maxWidth: '100%', height: 'auto', borderRadius: 4, margin: '0.5em 0', display: 'block', ...style }}
+        onError={() => setFailed(true)}
+        {...props}
+      />
+    );
+  };
 
   // Preprocess content to convert HTML img tags to markdown img syntax
   const preprocessContent = (content: string) => {

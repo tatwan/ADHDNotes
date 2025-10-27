@@ -1,5 +1,5 @@
 import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
-import { join } from 'path';
+import { join, dirname, resolve } from 'path';
 import { promises as fs } from 'fs';
 import { homedir } from 'os';
 import chokidar from 'chokidar';
@@ -18,11 +18,21 @@ function getDefaultNotesDir(): string {
 // Get custom notes directory from store (for project notes)
 function getCustomNotesDir(): string {
   const stored = store.get('customNotesDir') as string;
-  return stored || getDefaultNotesDir();
+  const baseDir = stored || getDefaultNotesDir();
+
+  // Check if the directory itself is named "Notes"
+  const dirName = baseDir.split('/').pop() || '';
+  if (dirName === 'Notes') {
+    // The selected directory is already the Notes folder
+    return baseDir;
+  } else {
+    // Use Notes subfolder within the selected directory
+    return join(baseDir, 'Notes');
+  }
 }
 
 let DEFAULT_DAILY_DIR = join(getDefaultNotesDir(), 'daily');
-let CUSTOM_NOTES_DIR = join(getCustomNotesDir(), 'notes');
+let CUSTOM_NOTES_DIR = getCustomNotesDir();
 
 // Check if path is within allowed directories
 function isPathAllowed(filePath: string): boolean {
@@ -42,12 +52,20 @@ async function ensureDirectories() {
 
 // Update custom notes directory and restart file watcher
 async function updateCustomNotesDir(newDir: string) {
-  CUSTOM_NOTES_DIR = join(newDir, 'notes');
+  // Check if the directory itself is named "Notes"
+  const dirName = newDir.split('/').pop() || '';
+  if (dirName === 'Notes') {
+    // The selected directory is already the Notes folder
+    CUSTOM_NOTES_DIR = newDir;
+  } else {
+    // Use Notes subfolder within the selected directory
+    CUSTOM_NOTES_DIR = join(newDir, 'Notes');
+  }
 
-  // Store the new directory
+  // Store the selected directory
   store.set('customNotesDir', newDir);
 
-  // Recreate directories if needed
+  // Recreate directories if needed (will create Notes subfolder if it doesn't exist)
   await ensureDirectories();
 
   // Restart file watcher
@@ -71,8 +89,9 @@ function createMenu() {
           accelerator: 'CmdOrCtrl+O',
           click: async () => {
             const result = await dialog.showOpenDialog(mainWindow!, {
-              properties: ['openDirectory'],
-              title: 'Select Notes Directory'
+              properties: ['openDirectory', 'createDirectory'],
+              title: 'Select Notes Directory',
+              buttonLabel: 'Select Folder'
             });
 
             if (!result.canceled && result.filePaths.length > 0) {
@@ -375,6 +394,15 @@ ipcMain.handle('read-image-file', async (_, filePath: string) => {
   }
 });
 
+// Path utility handlers
+ipcMain.handle('path-dirname', (_, filePath: string) => {
+  return dirname(filePath);
+});
+
+ipcMain.handle('path-resolve', (_, ...paths: string[]) => {
+  return resolve(...paths);
+});
+
 // Store handlers
 ipcMain.handle('store-get', (_, key: string) => {
   return store.get(key);
@@ -387,8 +415,9 @@ ipcMain.handle('store-set', (_, key: string, value: any) => {
 
 ipcMain.handle('open-folder-dialog', async () => {
   const result = await dialog.showOpenDialog(mainWindow!, {
-    properties: ['openDirectory'],
-    title: 'Select Notes Directory'
+    properties: ['openDirectory', 'createDirectory'],
+    title: 'Select Notes Directory',
+    buttonLabel: 'Select Folder'
   });
 
   if (!result.canceled && result.filePaths.length > 0) {

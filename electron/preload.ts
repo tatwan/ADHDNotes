@@ -21,6 +21,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Folder dialog
   openFolderDialog: () => ipcRenderer.invoke('open-folder-dialog'),
 
+  // Path utilities
+  path: {
+    dirname: (filePath: string) => ipcRenderer.invoke('path-dirname', filePath),
+    resolve: (...paths: string[]) => ipcRenderer.invoke('path-resolve', ...paths)
+  },
+
   // Store operations
   storeGet: (key: string) => ipcRenderer.invoke('store-get', key),
   storeSet: (key: string, value: any) => ipcRenderer.invoke('store-set', key, value),
@@ -73,6 +79,10 @@ declare global {
       copyFile: (sourcePath: string, destPath: string) => Promise<{ success: boolean; error?: string }>;
       readImageFile: (filePath: string) => Promise<{ success: boolean; dataUrl?: string; error?: string }>;
       openFolderDialog: () => Promise<{ success: boolean; directory?: string }>;
+      path: {
+        dirname: (filePath: string) => Promise<string>;
+        resolve: (...paths: string[]) => Promise<string>;
+      };
       storeGet: (key: string) => Promise<any>;
       storeSet: (key: string, value: any) => Promise<{ success: boolean }>;
       storeDelete: (key: string) => Promise<{ success: boolean }>;
