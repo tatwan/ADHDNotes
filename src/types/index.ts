@@ -262,6 +262,9 @@ declare global {
         content?: string;
         error?: string;
       }>;
+      onThemeFileAdded: (callback: (filePath: string) => void) => void;
+      onThemeFileChanged: (callback: (filePath: string) => void) => void;
+      onThemeFileDeleted: (callback: (filePath: string) => void) => void;
     };
   }
 }

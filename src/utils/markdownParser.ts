@@ -89,7 +89,7 @@ export function parseMarkdownContent(content: string, noteDate: Date): { tasks: 
  */
 export function extractIncompleteTasks(content: string, noteDate: Date): Task[] {
   const { tasks } = parseMarkdownContent(content, noteDate);
-  return tasks.filter(task => !task.completed);
+  return tasks.filter(task => !task.completed && task.content.trim() !== '');
 }
 
 /**

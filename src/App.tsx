@@ -9,9 +9,15 @@ import MigrationModal from '@components/modals/MigrationModal';
 import { createTimeString } from '@utils/dateUtils';
 import { useFileWatcher } from '@hooks/useFileWatcher';
 import { ThemeProvider } from '@contexts/ThemeContext';
+import { resetMigrationState } from '@utils/migrationChecker';
+
+// Expose debug helpers in development
+if (process.env.NODE_ENV === 'development') {
+  (window as any).debugResetMigration = resetMigrationState;
+}
 
 function App() {
-  const { initialize, isInitialized, showMigrationModal } = useAppStore();
+  const { initialize, isInitialized, showMigrationModal, checkForMigration } = useAppStore();
   const { loadDailyNote } = useNoteStore();
   const { scheduleTask } = useTaskStore();
 
@@ -25,6 +31,9 @@ function App() {
 
       // Load today's daily note
       await loadDailyNote(new Date());
+
+      // Check for migration after note is loaded
+      await checkForMigration();
     };
 
     initApp();

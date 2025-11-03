@@ -1,8 +1,40 @@
 import { MigrationTask } from '@/types';
 import { readFile, getDailyNoteFilePath, fileExists } from './fileSystem';
 import { extractIncompleteTasks } from './markdownParser';
-import { storeGet, storeSet } from './fileSystem';
+import { storeGet, storeSet, storeDelete } from './fileSystem';
 import { formatDateForFileName, parseDateFromFileName, getPreviousDay, isSameDay } from './dateUtils';
+
+/**
+ * Find the most recent date with incomplete tasks, searching backwards from startDate
+ * @param startDate - Date to start searching from (going backwards)
+ * @param maxDaysBack - Maximum number of days to search back (default 30)
+ * @returns The most recent date with incomplete tasks, or null if none found
+ */
+async function findMostRecentDateWithIncompleteTasks(startDate: Date, maxDaysBack: number = 30): Promise<Date | null> {
+  let currentDate = new Date(startDate);
+  let daysChecked = 0;
+
+  while (daysChecked < maxDaysBack) {
+    const filePath = await getDailyNoteFilePath(currentDate);
+    const exists = await fileExists(filePath);
+
+    if (exists) {
+      const result = await readFile(filePath);
+      if (result.success && result.data) {
+        const incompleteTasks = extractIncompleteTasks(result.data, currentDate);
+        if (incompleteTasks.length > 0) {
+          return currentDate;
+        }
+      }
+    }
+
+    // Move to previous day
+    currentDate = getPreviousDay(currentDate);
+    daysChecked++;
+  }
+
+  return null;
+}
 
 /**
  * Check if migration is needed and return incomplete tasks from previous day
@@ -16,10 +48,11 @@ export async function checkMigrationNeeded(currentDate: Date): Promise<Migration
     const today = new Date(currentDate);
     const yesterday = getPreviousDay(today);
 
-    let dateToCheck: Date;
+    let dateToCheck: Date | null = null;
 
     if (!lastReviewedDateStr) {
-      dateToCheck = yesterday;
+      // First time - search backwards from yesterday to find incomplete tasks
+      dateToCheck = await findMostRecentDateWithIncompleteTasks(yesterday, 30);
     } else {
       const lastReviewedDate = parseDateFromFileName(lastReviewedDateStr);
 
@@ -28,32 +61,30 @@ export async function checkMigrationNeeded(currentDate: Date): Promise<Migration
         return [];
       }
 
-      // Check the day before today
-      dateToCheck = yesterday;
+      // Search backwards from yesterday to find the most recent date with incomplete tasks
+      dateToCheck = await findMostRecentDateWithIncompleteTasks(yesterday, 30);
+    }
+
+    if (!dateToCheck) {
+      // No date with incomplete tasks found in the past 30 days
+      await storeSet('lastReviewedDate', formatDateForFileName(today));
+      return [];
     }
 
     // Get file path for the date to check
     const filePath = await getDailyNoteFilePath(dateToCheck);
 
-    // Check if file exists
-    const exists = await fileExists(filePath);
-    if (!exists) {
-      // No file for previous day, update last reviewed date and return empty
-      await storeSet('lastReviewedDate', formatDateForFileName(today));
-      return [];
-    }
-
-    // Read file content from previous day
+    // Read file content from the date to check
     const result = await readFile(filePath);
     if (!result.success || !result.data) {
       return [];
     }
 
-    // Extract incomplete tasks from previous day
+    // Extract incomplete tasks from that date
     const incompleteTasks = extractIncompleteTasks(result.data, dateToCheck);
 
     if (incompleteTasks.length === 0) {
-      // No incomplete tasks, update last reviewed date
+      // No incomplete tasks (shouldn't happen since findMostRecentDateWithIncompleteTasks found them)
       await storeSet('lastReviewedDate', formatDateForFileName(today));
       return [];
     }
@@ -73,7 +104,7 @@ export async function checkMigrationNeeded(currentDate: Date): Promise<Migration
     // Get migration history to check for already-migrated tasks
     const history = await getMigrationHistory();
     const todayDateStr = formatDateForFileName(today);
-    const yesterdayDateStr = formatDateForFileName(dateToCheck);
+    const dateToCheckStr = formatDateForFileName(dateToCheck);
 
     // Filter out tasks that have already been migrated to today
     const tasksToMigrate = incompleteTasks.filter(task => {
@@ -82,10 +113,10 @@ export async function checkMigrationNeeded(currentDate: Date): Promise<Migration
         return false;
       }
 
-      // Check if this task was previously migrated from yesterday to today
+      // Check if this task was previously migrated from the source date to today
       const wasMigrated = history.some(entry =>
         entry.taskContent === task.content &&
-        entry.originalDate === yesterdayDateStr &&
+        entry.originalDate === dateToCheckStr &&
         entry.targetDate === todayDateStr &&
         entry.decision === 'move'
       );
@@ -161,5 +192,19 @@ export async function addMigrationHistory(
     await storeSet('migrationHistory', history);
   } catch (error) {
     console.error('Error adding migration history:', error);
+  }
+}
+
+/**
+ * Reset migration state - useful for testing
+ * This clears the last reviewed date and migration history
+ */
+export async function resetMigrationState(): Promise<void> {
+  try {
+    await storeDelete('lastReviewedDate');
+    await storeDelete('migrationHistory');
+    console.log('✅ Migration state reset');
+  } catch (error) {
+    console.error('Error resetting migration state:', error);
   }
 }

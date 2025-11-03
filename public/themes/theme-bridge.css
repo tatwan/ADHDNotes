@@ -4,47 +4,107 @@
  * This stylesheet bridges the gap between Typora-style themes (like mine.css)
  * and react-markdown's output structure. It maps Typora classes to standard
  * markdown HTML elements.
+ * 
+ * Key mappings:
+ * - Typora uses .md-fences for code blocks
+ * - React-Markdown uses pre > code
+ * - We add .md-fences class to code blocks via component customization
  */
 
-/* Map react-markdown's code blocks to Typora's .md-fences class */
+/* Ensure code blocks inherit .md-fences styling from themes */
 .markdown-preview pre {
-  /* Inherit styles that would apply to .md-fences */
   margin-bottom: 15px;
   margin-top: 15px;
   padding-top: 8px;
   padding-bottom: 6px;
 }
 
+/* Code blocks should use .md-fences styles from themes */
 .markdown-preview pre > code {
-  /* Apply .md-fences styles to code blocks */
   display: block;
-  color: #ffffff;
-  border: 1.5px solid var(--border, #e1e4e8);
-  background-color: #303841;
-  border-radius: 4px;
-  padding: 12px;
-  font-size: 0.9em;
-  font-family: var(--mono-font, 'JetBrains Mono', 'Cascadia Mono', 'Cascadia Code', monospace);
-  font-variant-ligatures: common-ligatures;
-  font-feature-settings: "liga" 1;
   overflow-x: auto;
-  line-height: 1.5;
+  line-height: 1.45;
 }
 
-/* Ensure inline code doesn't get block styles */
+/* When no theme is selected, provide sensible defaults for code blocks */
+.markdown-preview pre > code:not(.md-fences) {
+  background-color: #f6f8fa;
+  border: 1px solid #e1e4e8;
+  border-radius: 3px;
+  padding: 8px 12px;
+  font-size: 0.9em;
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+/* Inline code should NOT inherit code block styles */
 .markdown-preview :not(pre) > code {
-  display: inline;
-  background-color: #d9dfe6;
-  color: rgba(41, 4, 4, 0.886);
-  padding: 0 2px 0 2px;
-  border: none;
+  display: inline !important;
+  padding: 0.2em 0.4em !important;
+  font-size: 85%;
+  /* Let themes style inline code via the 'code' selector */
+}
+
+/* Override any block-specific styles that might leak to inline code */
+.markdown-preview p code,
+.markdown-preview li code,
+.markdown-preview h1 code,
+.markdown-preview h2 code,
+.markdown-preview h3 code,
+.markdown-preview h4 code,
+.markdown-preview h5 code,
+.markdown-preview h6 code,
+.markdown-preview td code,
+.markdown-preview th code,
+.markdown-preview blockquote code {
+  display: inline !important;
+  margin: 0 !important;
 }
 
 /* Support for highlight syntax (==text==) */
 .markdown-preview mark {
-  background-color: var(--mark-bg, #ffde67);
+  background-color: var(--mark-bg, #fff3cd);
   color: var(--mark-text, #000000);
-  border-radius: 4px;
+  border-radius: 2px;
   padding: 2px 4px;
-  margin: 0 2px;
+  margin: 0 1px;
 }
+
+/* Task list styling to match Typora */
+.markdown-preview .task-list-item {
+  list-style-type: none;
+  position: relative;
+}
+
+.markdown-preview .task-list-item > input[type="checkbox"] {
+  margin-right: 0.5em;
+}
+
+/* Ensure tables render properly */
+.markdown-preview table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.markdown-preview table th,
+.markdown-preview table td {
+  border: 1px solid #dfe2e5;
+  padding: 6px 13px;
+}
+
+.markdown-preview table tr:nth-child(2n) {
+  background-color: #f6f8fa;
+}
+
+/* Fix for blockquote headers when React-Markdown wraps them in <p> tags */
+/* React-Markdown may wrap headers in paragraphs, so remove paragraph padding */
+.markdown-preview blockquote > p:first-child:has(> h1:only-child),
+.markdown-preview blockquote > p:first-child:has(> h2:only-child),
+.markdown-preview blockquote > p:first-child:has(> h3:only-child),
+.markdown-preview blockquote > p:first-child:has(> h4:only-child),
+.markdown-preview blockquote > p:first-child:has(> h5:only-child),
+.markdown-preview blockquote > p:first-child:has(> h6:only-child) {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+

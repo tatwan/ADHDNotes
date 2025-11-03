@@ -55,7 +55,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Theme operations
   listThemes: () => ipcRenderer.invoke('list-themes'),
-  readThemeFile: (fileName: string) => ipcRenderer.invoke('read-theme-file', fileName)
+  readThemeFile: (fileName: string) => ipcRenderer.invoke('read-theme-file', fileName),
+  onThemeFileAdded: (callback: (filePath: string) => void) => {
+    ipcRenderer.on('theme-file-added', (_, filePath) => callback(filePath));
+  },
+  onThemeFileChanged: (callback: (filePath: string) => void) => {
+    ipcRenderer.on('theme-file-changed', (_, filePath) => callback(filePath));
+  },
+  onThemeFileDeleted: (callback: (filePath: string) => void) => {
+    ipcRenderer.on('theme-file-deleted', (_, filePath) => callback(filePath));
+  }
 });
 
 // Type definition for window.electronAPI
@@ -105,6 +114,9 @@ declare global {
         content?: string;
         error?: string;
       }>;
+      onThemeFileAdded: (callback: (filePath: string) => void) => void;
+      onThemeFileChanged: (callback: (filePath: string) => void) => void;
+      onThemeFileDeleted: (callback: (filePath: string) => void) => void;
     };
   }
 }

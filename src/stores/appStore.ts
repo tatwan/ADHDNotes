@@ -44,7 +44,6 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
   initialize: async () => {
     await get().loadSettings();
     await get().loadFileTree();
-    await get().checkForMigration();
 
     // Set up IPC event listeners
     window.electronAPI.onNotesDirChanged((newDir: string) => {

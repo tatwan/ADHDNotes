@@ -222,7 +222,7 @@ const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange, currentFile
         components={{
           img: ImageComponent,
           code: ({ node, inline, className, children, ...props }: any) => {
-            // For code blocks (not inline code), add md-fences class
+            // For code blocks (not inline code), add md-fences class for theme styling
             if (!inline) {
               return (
                 <code className={`md-fences ${className || ''}`} {...props}>
@@ -236,6 +236,50 @@ const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange, currentFile
                 {children}
               </code>
             );
+          },
+          blockquote: ({ node, children, ...props }: any) => {
+            // React-Markdown wraps blockquote content in <p> tags, which breaks
+            // theme CSS rules like "blockquote>h3:first-child"
+            // If the blockquote contains only a single paragraph with a single header,
+            // unwrap it to match Typora's structure
+            
+            const childArray = Array.isArray(children) ? children : [children];
+            
+            // Filter out text nodes that are just whitespace
+            const contentNodes = childArray.filter((child: any) => {
+              if (typeof child === 'string') {
+                return child.trim().length > 0;
+              }
+              return child != null;
+            });
+            
+            // Check if there's exactly one <p> element
+            if (contentNodes.length === 1 && contentNodes[0]?.type === 'p') {
+              const pElement = contentNodes[0];
+              const pChildren = Array.isArray(pElement.props?.children) 
+                ? pElement.props.children 
+                : [pElement.props?.children];
+              
+              // Filter out whitespace from p's children
+              const pContentNodes = pChildren.filter((child: any) => {
+                if (typeof child === 'string') {
+                  return child.trim().length > 0;
+                }
+                return child != null;
+              });
+              
+              // If the <p> contains only one header element, unwrap it
+              if (pContentNodes.length === 1 && pContentNodes[0]?.type?.match(/^h[1-6]$/)) {
+                return (
+                  <blockquote {...props}>
+                    {pContentNodes[0]}
+                  </blockquote>
+                );
+              }
+            }
+            
+            // Otherwise, render normally
+            return <blockquote {...props}>{children}</blockquote>;
           }
         }}
       >

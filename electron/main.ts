@@ -1,7 +1,6 @@
 import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
 import { join, dirname, resolve } from 'path';
 import { promises as fs } from 'fs';
-import { homedir } from 'os';
 import chokidar from 'chokidar';
 import Store from 'electron-store';
 
@@ -12,7 +11,7 @@ let fileWatcher: chokidar.FSWatcher | null = null;
 
 // Get default notes directory (for daily notes)
 function getDefaultNotesDir(): string {
-  return join(homedir(), 'Documents', 'ADHDNotes');
+  return join(app.getPath('documents'), 'ADHDNotes');
 }
 
 // Get custom notes directory from store (for project notes)
@@ -36,7 +35,8 @@ let CUSTOM_NOTES_DIR = getCustomNotesDir();
 
 // Check if path is within allowed directories
 function isPathAllowed(filePath: string): boolean {
-  return filePath.startsWith(DEFAULT_DAILY_DIR) || filePath.startsWith(CUSTOM_NOTES_DIR);
+  const themesPath = join(getDefaultNotesDir(), 'themes');
+  return filePath.startsWith(DEFAULT_DAILY_DIR) || filePath.startsWith(CUSTOM_NOTES_DIR) || filePath.startsWith(themesPath);
 }
 
 // Copy default themes to user themes directory on first run
@@ -249,8 +249,9 @@ function createWindow() {
 
 // Setup file watcher
 function setupFileWatcher() {
-  // Watch both daily and custom notes directories
-  const watchPaths = [DEFAULT_DAILY_DIR, CUSTOM_NOTES_DIR];
+  // Watch both daily and custom notes directories, and themes directory
+  const themesPath = join(getDefaultNotesDir(), 'themes');
+  const watchPaths = [DEFAULT_DAILY_DIR, CUSTOM_NOTES_DIR, themesPath];
   fileWatcher = chokidar.watch(watchPaths, {
     ignored: /(^|[\/\\])\../, // ignore dotfiles
     persistent: true,
@@ -259,13 +260,25 @@ function setupFileWatcher() {
 
   fileWatcher
     .on('add', (path) => {
-      mainWindow?.webContents.send('file-added', path);
+      if (path.startsWith(themesPath)) {
+        mainWindow?.webContents.send('theme-file-added', path);
+      } else {
+        mainWindow?.webContents.send('file-added', path);
+      }
     })
     .on('change', (path) => {
-      mainWindow?.webContents.send('file-changed', path);
+      if (path.startsWith(themesPath)) {
+        mainWindow?.webContents.send('theme-file-changed', path);
+      } else {
+        mainWindow?.webContents.send('file-changed', path);
+      }
     })
     .on('unlink', (path) => {
-      mainWindow?.webContents.send('file-deleted', path);
+      if (path.startsWith(themesPath)) {
+        mainWindow?.webContents.send('theme-file-deleted', path);
+      } else {
+        mainWindow?.webContents.send('file-deleted', path);
+      }
     });
 }
 

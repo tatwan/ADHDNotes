@@ -57,7 +57,49 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               document.head.appendChild(style);
             }
 
-            style.textContent = result.content;
+            // Scope theme CSS to .markdown-preview container
+            // This ensures theme styles only apply to the preview area
+            let scopedContent = result.content;
+            
+            // Replace selectors to scope them to .markdown-preview
+            // Skip @-rules, :root, and keyframes
+            scopedContent = scopedContent.replace(
+              /^(?!@|:root)([^{]+)\{/gm,
+              (match, selector) => {
+                // Skip comments
+                if (selector.trim().startsWith('/*')) {
+                  return match;
+                }
+                
+                // If selector already includes .markdown-preview, don't double-scope
+                if (selector.includes('.markdown-preview')) {
+                  return match;
+                }
+                
+                // Split multiple selectors (e.g., ".md-fences, code, tt")
+                const selectors = selector.split(',').map((s: string) => {
+                  const trimmed = s.trim();
+                  
+                  // Handle child combinator (>) at the start of the selector
+                  // e.g., "blockquote>h1" should become ".markdown-preview blockquote>h1"
+                  // Split on spaces, >, +, ~ to find the first element
+                  const firstElementMatch = trimmed.match(/^([^\s>+~]+)/);
+                  if (firstElementMatch) {
+                    const firstElement = firstElementMatch[1];
+                    const rest = trimmed.substring(firstElement.length);
+                    // Scope by adding .markdown-preview before the first element
+                    return `.markdown-preview ${firstElement}${rest}`;
+                  }
+                  
+                  // Fallback: just add .markdown-preview as descendant
+                  return `.markdown-preview ${trimmed}`;
+                }).join(',\n');
+                
+                return `${selectors} {`;
+              }
+            );
+
+            style.textContent = scopedContent;
           } else {
             console.error('Failed to load theme:', result.error);
             // Remove theme stylesheet for default theme
@@ -118,6 +160,21 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     };
 
     loadThemes();
+
+    // Listen for theme file changes
+    const handleThemeFileChange = () => {
+      loadThemes();
+    };
+
+    window.electronAPI.onThemeFileAdded(handleThemeFileChange);
+    window.electronAPI.onThemeFileChanged(handleThemeFileChange);
+    window.electronAPI.onThemeFileDeleted(handleThemeFileChange);
+
+    // Cleanup listeners on unmount
+    return () => {
+      // Note: Electron doesn't have removeListener for these, so they persist
+      // In a real app, you might want to implement remove listeners
+    };
   }, []);
 
   return (
