@@ -1,3 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+:root {
+  /* Palette match for ADHDNotes — Soft Pastel UI */
+  --color-slate-ink: #3F4A4F;
+  --color-mist-white: #F7F3EF;
+  --color-calm-teal: #9AC7C1;
+  --color-soft-lavender: #C9C4E2;
+  --color-pastel-peach: #F2C7B2;
+  --color-cool-grey-1: #E4E7EA;
+  --color-cool-grey-2: #C8CDD1;
+  --color-cool-grey-3: #777777;
+  --color-charcoal-soft: #2F3A3E;
+  --color-deep-graphite: #1A1E20;
+  --color-muted-teal: #6EA3A0;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -6,7 +23,7 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -41,11 +58,11 @@ code {
 }
 
 .cm-time-block {
-  color: #f59e0b;
+  color: var(--color-pastel-peach);
 }
 
 .cm-task-line {
-  color: #2196f3;
+  color: var(--color-calm-teal);
 }
 
 /* Custom scrollbar */
@@ -55,14 +72,14 @@ code {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--color-mist-white);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: var(--color-cool-grey-2);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--color-charcoal-soft);
 }

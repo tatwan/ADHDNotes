@@ -23,12 +23,12 @@ const TimeSlot = ({ hour, minute, label, tasks, timeBlocks }: TimeSlotProps) => 
     <Box
       ref={setNodeRef}
       borderTop="1px"
-      borderColor="gray.200"
+      borderColor="slate.100"
       py={2}
       minHeight="60px"
-      bg={isOver ? 'blue.50' : hasItems ? 'gray.50' : 'transparent'}
+      bg={isOver ? 'brand.50' : hasItems ? 'slate.50' : 'transparent'}
       transition="background 0.2s"
-      _hover={{ bg: hasItems ? 'gray.100' : 'gray.50' }}
+      _hover={{ bg: hasItems ? 'slate.100' : 'slate.50' }}
     >
       <HStack align="flex-start" spacing={3}>
         {/* Time Label */}
@@ -49,16 +49,16 @@ const TimeSlot = ({ hour, minute, label, tasks, timeBlocks }: TimeSlotProps) => 
             <HStack
               key={block.id}
               p={2}
-              bg="yellow.100"
+              bg="peach.100"
               borderLeft="3px solid"
-              borderColor="yellow.500"
+              borderColor="peach.500"
               borderRadius="md"
               spacing={2}
             >
               {block.completed ? (
-                <FiCheckCircle color="#f59e0b" />
+                <FiCheckCircle style={{ color: 'var(--color-pastel-peach)' }} />
               ) : (
-                <FiCircle color="#f59e0b" />
+                <FiCircle style={{ color: 'var(--color-pastel-peach)' }} />
               )}
               <Text fontSize="sm" flex="1">
                 {block.content}
@@ -74,22 +74,22 @@ const TimeSlot = ({ hour, minute, label, tasks, timeBlocks }: TimeSlotProps) => 
             <HStack
               key={task.id}
               p={2}
-              bg="green.50"
+              bg="brand.50"
               borderLeft="3px solid"
-              borderColor="green.500"
+              borderColor="brand.500"
               borderRadius="md"
               spacing={2}
             >
               {task.completed ? (
-                <FiCheckCircle color="#22c55e" />
+                <FiCheckCircle style={{ color: 'var(--color-muted-teal)' }} />
               ) : (
-                <FiCircle color="#22c55e" />
+                <FiCircle style={{ color: 'var(--color-muted-teal)' }} />
               )}
               <Text
                 fontSize="sm"
                 flex="1"
                 textDecoration={task.completed ? 'line-through' : 'none'}
-                color={task.completed ? 'gray.500' : 'inherit'}
+                color={task.completed ? 'slate.500' : 'inherit'}
               >
                 {task.content}
               </Text>

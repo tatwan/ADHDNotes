@@ -17,9 +17,9 @@ const AppLayout = () => {
         width={sidebarWidth}
         minWidth={sidebarWidth}
         height="100vh"
-        bg="gray.100"
+        bg="slate.50"
         borderRight="1px"
-        borderColor="gray.200"
+        borderColor="slate.100"
         overflow="hidden"
         transition="width 0.2s"
       >
@@ -27,7 +27,7 @@ const AppLayout = () => {
       </Box>
 
       {/* Main Editor Area */}
-      <Box flex="1" height="100vh" overflow="hidden" bg="white">
+      <Box flex="1" height="100vh" overflow="hidden" bg="slate.50">
         <MarkdownEditor />
       </Box>
 
@@ -36,9 +36,9 @@ const AppLayout = () => {
         width={rightPanelWidth}
         minWidth={rightPanelWidth}
         height="100vh"
-        bg="gray.100"
+        bg="slate.50"
         borderLeft="1px"
-        borderColor="gray.200"
+        borderColor="slate.100"
         overflow="hidden"
         transition="width 0.2s"
       >

@@ -51,6 +51,7 @@ You cannot skip this - every task requires a decision.
 - **Forced Daily Migration**: ⭐ Core feature - manually review incomplete tasks from previous days (no automation, intentional friction for reflection)
 - **Auto-Save**: Debounced auto-save with 3-second interval
 - **File Watcher**: Automatic detection of external file changes
+- **Branding**: New app icon and soft pastel UI color palette applied across the app UI to match the ADHDNotes aesthetic (Slate Ink, Calm Teal, Soft Lavender, Pastel Peach)
 
 ## Technology Stack
 

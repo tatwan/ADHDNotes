@@ -28,8 +28,8 @@
 
 /* When no theme is selected, provide sensible defaults for code blocks */
 .markdown-preview pre > code:not(.md-fences) {
-  background-color: #f6f8fa;
-  border: 1px solid #e1e4e8;
+  background-color: var(--color-mist-white);
+  border: 1px solid var(--color-cool-grey-2);
   border-radius: 3px;
   padding: 8px 12px;
   font-size: 0.9em;
@@ -62,8 +62,8 @@
 
 /* Support for highlight syntax (==text==) */
 .markdown-preview mark {
-  background-color: var(--mark-bg, #fff3cd);
-  color: var(--mark-text, #000000);
+  background-color: var(--mark-bg, var(--color-pastel-peach));
+  color: var(--mark-text, var(--color-slate-ink));
   border-radius: 2px;
   padding: 2px 4px;
   margin: 0 1px;
@@ -88,12 +88,12 @@
 
 .markdown-preview table th,
 .markdown-preview table td {
-  border: 1px solid #dfe2e5;
+  border: 1px solid var(--color-cool-grey-2);
   padding: 6px 13px;
 }
 
 .markdown-preview table tr:nth-child(2n) {
-  background-color: #f6f8fa;
+  background-color: var(--color-mist-white);
 }
 
 /* Fix for blockquote headers when React-Markdown wraps them in <p> tags */

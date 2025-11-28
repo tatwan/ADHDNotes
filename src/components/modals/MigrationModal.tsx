@@ -94,7 +94,7 @@ const MigrationModal = () => {
             {/* Task Content */}
             <Box
               p={6}
-              bg="gray.50"
+              bg="slate.50"
               borderRadius="lg"
               borderLeft="4px solid"
               borderColor="brand.500"
@@ -116,8 +116,8 @@ const MigrationModal = () => {
             </Box>
 
             {/* Info Box */}
-            <Box p={4} bg="blue.50" borderRadius="md" borderLeft="3px solid" borderColor="blue.400">
-              <Text fontSize="sm" color="blue.900">
+            <Box p={4} bg="brand.50" borderRadius="md" borderLeft="3px solid" borderColor="brand.400">
+              <Text fontSize="sm" color="brand.700">
                 <strong>Note:</strong> You must decide on each incomplete task. This intentional
                 friction helps you prioritize what truly matters.
               </Text>
@@ -156,7 +156,7 @@ const MigrationModal = () => {
                   <HStack spacing={3} width="100%">
                     <Button
                       leftIcon={<FiCheckCircle />}
-                      colorScheme="green"
+                      colorScheme="brand"
                       variant="outline"
                       size="md"
                       flex="1"
@@ -166,7 +166,7 @@ const MigrationModal = () => {
                     </Button>
                     <Button
                       leftIcon={<FiTrash2 />}
-                      colorScheme="red"
+                      colorScheme="peach"
                       variant="outline"
                       size="md"
                       flex="1"

@@ -96,14 +96,14 @@ const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange, currentFile
       return (
         <div
           style={{
-            padding: '1em',
-            background: '#f7fafc',
-            border: '1px solid #e1e4e8',
-            borderRadius: 4,
-            color: '#586069',
-            fontSize: '0.9em',
-            margin: '0.5em 0'
-          }}
+              padding: '1em',
+              background: 'var(--color-mist-white)',
+              border: '1px solid var(--color-cool-grey-2)',
+              borderRadius: 4,
+              color: 'var(--color-cool-grey-2)',
+              fontSize: '0.9em',
+              margin: '0.5em 0'
+            }}
           title={title}
         >
           📷 Image not found: {alt || src}
@@ -115,14 +115,14 @@ const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange, currentFile
       return (
         <div
           style={{
-            padding: '1em',
-            background: '#f7fafc',
-            border: '1px solid #e1e4e8',
-            borderRadius: 4,
-            color: '#586069',
-            fontSize: '0.9em',
-            margin: '0.5em 0'
-          }}
+              padding: '1em',
+              background: 'var(--color-mist-white)',
+              border: '1px solid var(--color-cool-grey-2)',
+              borderRadius: 4,
+              color: 'var(--color-cool-grey-2)',
+              fontSize: '0.9em',
+              margin: '0.5em 0'
+            }}
           title={title}
         >
           📷 Loading image...

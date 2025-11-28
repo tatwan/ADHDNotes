@@ -66,7 +66,7 @@
   "build": {
     "appId": "com.adhdnotes.app",
     "productName": "ADHDNotes",
-    "icon": "img/icon_updated.png",
+    "icon": "img/icon_latest_version.png",
     "directories": {
       "output": "release"
     },

@@ -1,6 +1,6 @@
 :root {
-    --side-bar-bg-color: #fafafa;
-    --control-text-color: #777;
+    --side-bar-bg-color: var(--color-mist-white);
+    --control-text-color: var(--color-cool-grey-3);
 }
 
 @include-when-export url(https://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext);
@@ -74,7 +74,7 @@ body {
 }
 
 a {
-    color: #4183C4;
+    color: var(--color-calm-teal);
 }
 h1,
 h2,
@@ -124,12 +124,12 @@ h6 code {
 h1 {
     font-size: 2.25em;
     line-height: 1.2;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--color-cool-grey-1);
 }
 h2 {
     font-size: 1.75em;
     line-height: 1.225;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--color-cool-grey-1);
 }
 
 /*@media print {
@@ -145,7 +145,7 @@ h2 {
         display: block;
         height: 100px;
         margin-top: -96px;
-        border-top: 1px solid #eee;
+        border-top: 1px solid var(--color-cool-grey-1);
     }
 }*/
 
@@ -161,7 +161,7 @@ h5 {
 }
 h6 {
    font-size: 1em;
-    color: #777;
+    color: var(--control-text-color);
 }
 p,
 blockquote,
@@ -179,7 +179,7 @@ hr {
     height: 2px;
     padding: 0;
     margin: 16px 0;
-    background-color: #e7e7e7;
+    background-color: var(--color-cool-grey-1);
     border: 0 none;
     overflow: hidden;
     box-sizing: content-box;
@@ -201,9 +201,9 @@ ol:last-child {
     margin-bottom: 0;
 }
 blockquote {
-    border-left: 4px solid #dfe2e5;
+    border-left: 4px solid var(--color-cool-grey-2);
     padding: 0 15px;
-    color: #777777;
+    color: var(--control-text-color);
 }
 blockquote blockquote {
     padding-right: 0;
@@ -213,23 +213,23 @@ table {
     word-break: initial;
 }
 table tr {
-    border: 1px solid #dfe2e5;
+    border: 1px solid var(--color-cool-grey-2);
     margin: 0;
     padding: 0;
 }
 table tr:nth-child(2n),
 thead {
-    background-color: #f8f8f8;
+    background-color: var(--color-mist-white);
 }
 table th {
     font-weight: bold;
-    border: 1px solid #dfe2e5;
+    border: 1px solid var(--color-cool-grey-2);
     border-bottom: 0;
     margin: 0;
     padding: 6px 13px;
 }
 table td {
-    border: 1px solid #dfe2e5;
+    border: 1px solid var(--color-cool-grey-2);
     margin: 0;
     padding: 6px 13px;
 }
@@ -248,14 +248,14 @@ table td:last-child {
 
 .code-tooltip {
     box-shadow: 0 1px 1px 0 rgba(0,28,36,.3);
-    border-top: 1px solid #eef2f2;
+    border-top: 1px solid var(--color-cool-grey-1);
 }
 
 .md-fences,
 code,
 tt {
-    border: 1px solid #e7eaed;
-    background-color: #f8f8f8;
+    border: 1px solid var(--color-cool-grey-2);
+    background-color: var(--color-mist-white);
     border-radius: 3px;
     padding: 0;
     padding: 2px 4px 0px 4px;
@@ -263,7 +263,7 @@ tt {
 }
 
 code {
-    background-color: #f3f4f4;
+    background-color: var(--color-mist-white);
     padding: 0 2px 0 2px;
 }
 
@@ -290,16 +290,16 @@ code {
 }
 
 .md-fences {
-	background-color: #f8f8f8;
+    background-color: var(--color-mist-white);
 }
 #write pre.md-meta-block {
 	padding: 1rem;
     font-size: 85%;
     line-height: 1.45;
-    background-color: #f7f7f7;
+    background-color: var(--color-mist-white);
     border: 0;
     border-radius: 3px;
-    color: #777777;
+    color: var(--control-text-color);
     margin-top: 0 !important;
 }
 
@@ -308,7 +308,7 @@ code {
 }
 
 .md-mathjax-midline {
-    background: #fafafa;
+    background: var(--color-mist-white);
 }
 
 #write>h3.md-focus:before{
@@ -336,7 +336,7 @@ code {
 }
 
 .md-tag {
-    color: #a7a7a7;
+    color: var(--control-text-color);
     opacity: 1;
 }
 
@@ -350,13 +350,13 @@ code {
 }
 
 #typora-quick-open {
-    border: 1px solid #ddd;
-    background-color: #f8f8f8;
+    border: 1px solid var(--color-cool-grey-2);
+    background-color: var(--color-mist-white);
 }
 
 #typora-quick-open-item {
-    background-color: #FAFAFA;
-    border-color: #FEFEFE #e5e5e5 #e5e5e5 #eee;
+    background-color: var(--color-mist-white);
+    border-color: var(--color-mist-white) var(--color-cool-grey-2) var(--color-cool-grey-2) var(--color-cool-grey-1);
     border-style: solid;
     border-width: 1px;
 }
@@ -376,7 +376,7 @@ header, .context-menu, .megamenu-content, footer{
 }
 
 .mac-seamless-mode #typora-sidebar {
-    background-color: #fafafa;
+    background-color: var(--color-mist-white);
     background-color: var(--side-bar-bg-color);
 }
 
@@ -389,7 +389,7 @@ header, .context-menu, .megamenu-content, footer{
 }
 
 /*.html-for-mac {
-    --item-hover-bg-color: #E6F0FE;
+    --item-hover-bg-color: var(--item-hover-bg-color);
 }*/
 
 #md-notification .btn {
@@ -397,20 +397,20 @@ header, .context-menu, .megamenu-content, footer{
 }
 
 .dropdown-menu .divider {
-    border-color: #e5e5e5;
+    border-color: var(--color-cool-grey-2);
     opacity: 0.4;
 }
 
 .ty-preferences .window-content {
-    background-color: #fafafa;
+    background-color: var(--color-mist-white);
 }
 
 .ty-preferences .nav-group-item.active {
     color: white;
-    background: #999;
+    background: var(--color-cool-grey-3);
 }
 
 .menu-item-container a.menu-style-btn {
-    background-color: #f5f8fa;
+    background-color: var(--color-mist-white);
     background-image: linear-gradient( 180deg , hsla(0, 0%, 100%, 0.8), hsla(0, 0%, 100%, 0)); 
 }

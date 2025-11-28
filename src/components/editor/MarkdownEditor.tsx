@@ -224,14 +224,14 @@ const MarkdownEditor = () => {
     <Box height="100%" display="flex" flexDirection="column">
       {/* Editor Header */}
       <Flex
-        px={6}
-        py={3}
-        borderBottom="1px"
-        borderColor="gray.200"
-        justify="space-between"
-        align="center"
-        bg="white"
-      >
+          px={6}
+          py={3}
+          borderBottom="1px"
+          borderColor="slate.100"
+          justify="space-between"
+          align="center"
+          bg="var(--color-mist-white)"
+        >
         <Box>
           <Text fontSize="xl" fontWeight="bold">
             {getNoteTitle()}
@@ -240,11 +240,11 @@ const MarkdownEditor = () => {
             <Text fontSize="sm" color="gray.600">
               {taskStats.total} tasks
             </Text>
-            <Text fontSize="sm" color="green.600">
+            <Text fontSize="sm" color="brand.700">
               {taskStats.completed} completed
             </Text>
             {hasUnsavedChanges && (
-              <Text fontSize="sm" color="orange.500">
+              <Text fontSize="sm" color="peach.500">
                 Unsaved changes
               </Text>
             )}
@@ -254,7 +254,7 @@ const MarkdownEditor = () => {
               </Badge>
             )}
             {isPreviewMode && !isReadOnly && (
-              <Badge colorScheme="purple" fontSize="xs">
+              <Badge colorScheme="lavender" fontSize="xs">
                 Preview Mode
               </Badge>
             )}

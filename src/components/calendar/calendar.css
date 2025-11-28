@@ -4,10 +4,10 @@
 
 .react-calendar {
   width: 100%;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-cool-grey-1);
   border-radius: 8px;
   font-family: inherit;
-  background: white;
+  background: var(--color-mist-white);
 }
 
 .react-calendar__navigation {
@@ -21,16 +21,16 @@
   background: none;
   font-size: 16px;
   font-weight: 500;
-  color: #2d3748;
+  color: var(--color-slate-ink);
 }
 
 .react-calendar__navigation button:enabled:hover,
 .react-calendar__navigation button:enabled:focus {
-  background-color: #e2e8f0;
+  background-color: var(--color-cool-grey-1);
 }
 
 .react-calendar__navigation button[disabled] {
-  background-color: #f7fafc;
+  background-color: var(--color-mist-white);
   color: #cbd5e0;
 }
 
@@ -39,7 +39,7 @@
   text-transform: uppercase;
   font-weight: bold;
   font-size: 0.75em;
-  color: #718096;
+  color: var(--color-cool-grey-2);
 }
 
 .react-calendar__month-view__weekdays__weekday {
@@ -48,15 +48,15 @@
 
 .react-calendar__month-view__days__day {
   font-size: 0.875rem;
-  color: #2d3748;
+  color: var(--color-slate-ink);
 }
 
 .react-calendar__month-view__days__day--weekend {
-  color: #e53e3e;
+  color: var(--color-pastel-peach);
 }
 
 .react-calendar__month-view__days__day--neighboringMonth {
-  color: #cbd5e0;
+  color: var(--color-cool-grey-2);
 }
 
 .react-calendar__tile {
@@ -70,26 +70,26 @@
 
 .react-calendar__tile:enabled:hover,
 .react-calendar__tile:enabled:focus {
-  background-color: #e2e8f0;
+  background-color: var(--color-cool-grey-1);
 }
 
 .react-calendar__tile--now {
-  background: #bee3f8;
+  background: rgba(154,199,193,0.24); /* soft calm teal */
   font-weight: bold;
 }
 
 .react-calendar__tile--now:enabled:hover,
 .react-calendar__tile--now:enabled:focus {
-  background: #90cdf4;
+  background: rgba(154,199,193,0.34);
+.react-calendar__tile abbr {
+  text-decoration: none;
+  color: var(--color-cool-grey-2);
 }
-
-.react-calendar__tile--active {
-  background: #2196f3;
   color: white;
   font-weight: bold;
 }
 
 .react-calendar__tile--active:enabled:hover,
 .react-calendar__tile--active:enabled:focus {
-  background: #1976d2;
+  background: var(--color-muted-teal);
 }

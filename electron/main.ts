@@ -222,7 +222,12 @@ function createWindow() {
       nodeIntegration: false,
       sandbox: false
     },
+    // Set titlebar and icon. For macOS the icon is handled via app bundle, but adding
+    // the icon helps for Windows/Linux and in dev builds.
     titleBarStyle: 'default',
+    icon: (process.env.VITE_DEV_SERVER_URL)
+      ? join(process.cwd(), 'img', 'icon_latest_version.png')
+      : join(__dirname, '..', 'img', 'icon_latest_version.png'),
     show: false
   });
 

@@ -1,4 +1,4 @@
-import { Box, VStack, Text, Button, IconButton, Flex, Input, HStack, Menu, MenuList, MenuItem, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@chakra-ui/react';
+import { Box, VStack, Text, Button, IconButton, Flex, Input, HStack, Menu, MenuList, MenuItem, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, Image } from '@chakra-ui/react';
 import { FiPlus, FiFolder, FiFile, FiCheck, FiX, FiTrash2, FiEdit, FiCopy, FiFileText, FiRefreshCw, FiSearch, FiChevronRight, FiChevronDown } from 'react-icons/fi';
 import { useAppStore } from '@stores/appStore';
 import { useNoteStore } from '@stores/noteStore';
@@ -18,6 +18,8 @@ import {
   useDroppable,
   useDraggable,
 } from '@dnd-kit/core';
+
+import iconLatest from '../../../img/icon_latest_version.png';
 
 const Sidebar = () => {
   const { fileTree, loadFileTree } = useAppStore();
@@ -311,7 +313,7 @@ const Sidebar = () => {
         ref={setNodeRef}
         minH="50px"
         p={2}
-        bg={isOver ? 'green.50' : 'transparent'}
+        bg={isOver ? 'brand.50' : 'transparent'}
         border={isOver ? '2px dashed green.200' : 'none'}
         borderRadius="md"
         transition="all 0.2s"
@@ -329,7 +331,7 @@ const Sidebar = () => {
     return (
       <Box
         ref={setNodeRef}
-        bg={isOver ? 'blue.50' : 'transparent'}
+        bg={isOver ? 'brand.50' : 'transparent'}
         border={isOver ? '2px dashed blue.200' : 'none'}
         borderRadius="md"
         transition="all 0.2s"
@@ -405,7 +407,7 @@ const Sidebar = () => {
                     aria-label="Confirm rename"
                     icon={<FiCheck />}
                     size="sm"
-                    colorScheme="green"
+                    colorScheme="brand"
                     onClick={() => handleConfirmRename(item)}
                   />
                   <IconButton
@@ -421,7 +423,7 @@ const Sidebar = () => {
                     align="center"
                     p={2}
                     cursor="pointer"
-                    _hover={{ bg: 'gray.200' }}
+                    _hover={{ bg: 'slate.100' }}
                     borderRadius="md"
                     onClick={() => toggleFolderExpansion(item.id)}
                     onContextMenu={(e) => {
@@ -446,7 +448,7 @@ const Sidebar = () => {
                     <MenuItem icon={<FiFileText />} onClick={() => handleNewNote(item.isDirectory ? item.path : undefined)}>
                       New File
                     </MenuItem>
-                    <MenuItem icon={<FiTrash2 />} color="red.500" onClick={() => handleDeleteNote(item)}>
+                    <MenuItem icon={<FiTrash2 />} color="peach.500" onClick={() => handleDeleteNote(item)}>
                       Delete
                     </MenuItem>
                   </MenuList>
@@ -475,7 +477,7 @@ const Sidebar = () => {
                   aria-label="Confirm rename"
                   icon={<FiCheck />}
                   size="sm"
-                  colorScheme="green"
+                  colorScheme="brand"
                   onClick={() => handleConfirmRename(item)}
                 />
                 <IconButton
@@ -491,7 +493,7 @@ const Sidebar = () => {
                   align="center"
                   p={2}
                   cursor="grab"
-                  _hover={{ bg: 'gray.200' }}
+                  _hover={{ bg: 'slate.100' }}
                   borderRadius="md"
                   onClick={() => handleFileClick(item)}
                   onContextMenu={(e) => {
@@ -515,7 +517,7 @@ const Sidebar = () => {
                   <MenuItem icon={<FiFileText />} onClick={() => handleNewNote(item.isDirectory ? item.path : undefined)}>
                     New File
                   </MenuItem>
-                  <MenuItem icon={<FiTrash2 />} color="red.500" onClick={() => handleDeleteNote(item)}>
+                  <MenuItem icon={<FiTrash2 />} color="peach.600" onClick={() => handleDeleteNote(item)}>
                     Delete
                   </MenuItem>
                 </MenuList>
@@ -528,7 +530,7 @@ const Sidebar = () => {
   };  return (
     <Box height="100%" display="flex" flexDirection="column">
       {/* Header */}
-      <Box p={4} borderBottom="1px" borderColor="gray.200">
+      <Box p={4} borderBottom="1px" borderColor="slate.100">
         {isAddingNote ? (
           <HStack spacing={2}>
             <Input
@@ -543,7 +545,7 @@ const Sidebar = () => {
               aria-label="Confirm"
               icon={<FiCheck />}
               size="sm"
-              colorScheme="green"
+              colorScheme="brand"
               onClick={handleConfirmNewNote}
               isDisabled={!newNoteTitle.trim()}
             />
@@ -557,9 +559,12 @@ const Sidebar = () => {
           </HStack>
         ) : (
           <Flex justify="space-between" align="center">
-            <Text fontSize="lg" fontWeight="bold">
-              Notes
-            </Text>
+            <Flex align="center">
+              <Image src={iconLatest} alt="ADHDNotes" boxSize="28px" mr={3} borderRadius="6px" />
+              <Text fontSize="lg" fontWeight="bold">
+                Notes
+              </Text>
+            </Flex>
             <IconButton
               aria-label="New note"
               icon={<FiPlus />}
@@ -626,7 +631,7 @@ const Sidebar = () => {
 
             <DragOverlay>
               {activeItem ? (
-                <Box p={2} bg="white" borderRadius="md" boxShadow="md">
+                <Box p={2} bg="var(--color-mist-white)" borderRadius="md" boxShadow="md">
                   {activeItem.isDirectory ? <FiFolder /> : <FiFile />}
                   <Text ml={2} fontSize="sm">
                     {activeItem.name}
@@ -639,7 +644,7 @@ const Sidebar = () => {
       </Box>
 
       {/* Footer Actions */}
-      <Box p={2} borderTop="1px" borderColor="gray.200">
+      <Box p={2} borderTop="1px" borderColor="slate.100">
         {isAddingFolder ? (
           <HStack spacing={2}>
             <Input
@@ -654,7 +659,7 @@ const Sidebar = () => {
               aria-label="Confirm"
               icon={<FiCheck />}
               size="sm"
-              colorScheme="green"
+              colorScheme="brand"
               onClick={handleConfirmNewFolder}
               isDisabled={!newFolderName.trim()}
             />

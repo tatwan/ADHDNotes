@@ -94,7 +94,7 @@ const CalendarView = () => {
                   width: '6px',
                   height: '6px',
                   borderRadius: '50%',
-                  backgroundColor: '#2196F3' // Blue for tasks
+                  backgroundColor: 'var(--color-calm-teal)'
                 }}
               />
             )}
@@ -104,7 +104,7 @@ const CalendarView = () => {
                   width: '6px',
                   height: '6px',
                   borderRadius: '50%',
-                  backgroundColor: '#E53E3E' // Red for time blocks
+                  backgroundColor: 'var(--color-pastel-peach)'
                 }}
               />
             )}
@@ -158,12 +158,12 @@ const CalendarView = () => {
       <Box mt={3}>
         <button
           onClick={handleToday}
-          style={{
+            style={{
             width: '100%',
             padding: '8px',
             fontSize: '14px',
             fontWeight: '500',
-            backgroundColor: '#2196F3',
+              backgroundColor: 'var(--color-calm-teal)',
             color: 'white',
             border: 'none',
             borderRadius: '6px',
