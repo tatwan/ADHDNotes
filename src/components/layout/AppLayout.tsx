@@ -3,9 +3,12 @@ import { useAppStore } from '@stores/appStore';
 import Sidebar from './Sidebar';
 import RightPanel from './RightPanel';
 import MarkdownEditor from '@components/editor/MarkdownEditor';
+import { useBookmarkStore } from '@stores/bookmarkStore';
+import BookmarkReader from '@components/bookmarks/BookmarkReader';
 
 const AppLayout = () => {
   const { sidebarExpanded, rightPanelExpanded } = useAppStore();
+  const { viewMode } = useBookmarkStore();
 
   const sidebarWidth = sidebarExpanded ? '250px' : '0px';
   const rightPanelWidth = rightPanelExpanded ? '350px' : '0px';
@@ -28,7 +31,7 @@ const AppLayout = () => {
 
       {/* Main Editor Area */}
       <Box flex="1" height="100vh" overflow="hidden" bg="slate.50">
-        <MarkdownEditor />
+        {viewMode === 'bookmarks' ? <BookmarkReader /> : <MarkdownEditor />}
       </Box>
 
       {/* Right Panel - Calendar and Timeline */}

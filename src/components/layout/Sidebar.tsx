@@ -2,6 +2,8 @@ import { Box, VStack, Text, Button, IconButton, Flex, Input, HStack, Menu, MenuL
 import { FiPlus, FiFolder, FiFile, FiCheck, FiX, FiTrash2, FiEdit, FiCopy, FiFileText, FiRefreshCw, FiSearch, FiChevronRight, FiChevronDown } from 'react-icons/fi';
 import { useAppStore } from '@stores/appStore';
 import { useNoteStore } from '@stores/noteStore';
+import { useBookmarkStore } from '@stores/bookmarkStore';
+import BookmarkList from '../bookmarks/BookmarkList';
 import { FileTreeItem } from '@/types';
 import { join, dirname } from 'path-browserify';
 import { getProjectsDir, deleteFile, renameFile, copyFile, createFolder } from '@utils/fileSystem';
@@ -24,6 +26,7 @@ import iconLatest from '../../../img/icon_latest_version.png';
 const Sidebar = () => {
   const { fileTree, loadFileTree } = useAppStore();
   const { loadProjectNote, createProjectNote } = useNoteStore();
+  const { viewMode, setViewMode } = useBookmarkStore();
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [newNoteTitle, setNewNoteTitle] = useState('');
   const [isRenaming, setIsRenaming] = useState<string | null>(null);
@@ -527,7 +530,7 @@ const Sidebar = () => {
         )}
       </DraggableItem>
     ));
-  };  return (
+  }; return (
     <Box height="100%" display="flex" flexDirection="column">
       {/* Header */}
       <Box p={4} borderBottom="1px" borderColor="slate.100">
@@ -575,108 +578,136 @@ const Sidebar = () => {
         )}
       </Box>
 
-      {/* File Tree */}
-      <Box flex="1" overflow="auto" p={2}>
-        {/* Search and Refresh Bar */}
-        <Box mb={3}>
-          <Flex gap={2}>
-            <Flex flex="1" position="relative">
-              <Input
-                size="sm"
-                placeholder="Search notes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                pr="2.5rem"
-              />
-              <Box position="absolute" right="0.5rem" top="50%" transform="translateY(-50%)">
-                <FiSearch size={16} color="gray" />
-              </Box>
-            </Flex>
-            <IconButton
-              aria-label="Refresh notes"
-              icon={<FiRefreshCw />}
-              size="sm"
-              variant="ghost"
-              onClick={handleRefresh}
-            />
-          </Flex>
-        </Box>
+      {/* Mode Switcher */}
+      <Flex p={2} borderBottom="1px" borderColor="gray.100" justify="center" gap={2}>
+        <Button
+          size="xs"
+          onClick={() => setViewMode('notes')}
+          variant={viewMode === 'notes' ? 'solid' : 'ghost'}
+          colorScheme={viewMode === 'notes' ? 'brand' : 'gray'}
+        >
+          Notes
+        </Button>
+        <Button
+          size="xs"
+          onClick={() => setViewMode('bookmarks')}
+          variant={viewMode === 'bookmarks' ? 'solid' : 'ghost'}
+          colorScheme={viewMode === 'bookmarks' ? 'brand' : 'gray'}
+        >
+          Bookmarks
+        </Button>
+      </Flex>
 
-        <VStack align="stretch" spacing={1}>
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
-            {/* Visible drop zone for moving items to the root/projects dir. Appears while dragging. */}
-            {activeItem && (
-              <Box px={2} mb={2}>
-                <RootDroppable>
-                  <Flex align="center" justify="center" p={2} color="gray.600">
-                    Drop here to move to top-level
-                  </Flex>
-                </RootDroppable>
-              </Box>
-            )}
+      {/* File Tree or Bookmarks */}
+      <Box flex="1" overflow="auto" p={2} display="flex" flexDirection="column">
+        {viewMode === 'bookmarks' ? (
+          <BookmarkList />
+        ) : (
+          <>
+            {/* Search and Refresh Bar */}
+            <Box mb={3}>
+              <Flex gap={2}>
+                <Flex flex="1" position="relative">
+                  <Input
+                    size="sm"
+                    placeholder="Search notes..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    pr="2.5rem"
+                  />
+                  <Box position="absolute" right="0.5rem" top="50%" transform="translateY(-50%)">
+                    <FiSearch size={16} color="gray" />
+                  </Box>
+                </Flex>
+                <IconButton
+                  aria-label="Refresh notes"
+                  icon={<FiRefreshCw />}
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleRefresh}
+                />
+              </Flex>
+            </Box>
 
-            {/* File tree (folders are droppable themselves) */}
-            {fileTree.length > 0 ? (
-              renderFileTree(filterFileTree(fileTree, searchQuery))
-            ) : (
-              <Text fontSize="sm" color="gray.500" px={2} py={4} textAlign="center">
-                No notes yet
-              </Text>
-            )}
+            <VStack align="stretch" spacing={1}>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+              >
+                {/* Visible drop zone for moving items to the root/projects dir. Appears while dragging. */}
+                {activeItem && (
+                  <Box px={2} mb={2}>
+                    <RootDroppable>
+                      <Flex align="center" justify="center" p={2} color="gray.600">
+                        Drop here to move to top-level
+                      </Flex>
+                    </RootDroppable>
+                  </Box>
+                )}
 
-            <DragOverlay>
-              {activeItem ? (
-                <Box p={2} bg="var(--color-mist-white)" borderRadius="md" boxShadow="md">
-                  {activeItem.isDirectory ? <FiFolder /> : <FiFile />}
-                  <Text ml={2} fontSize="sm">
-                    {activeItem.name}
+                {/* File tree (folders are droppable themselves) */}
+                {fileTree.length > 0 ? (
+                  renderFileTree(filterFileTree(fileTree, searchQuery))
+                ) : (
+                  <Text fontSize="sm" color="gray.500" px={2} py={4} textAlign="center">
+                    No notes yet
                   </Text>
-                </Box>
-              ) : null}
-            </DragOverlay>
-          </DndContext>
-        </VStack>
+                )}
+
+                <DragOverlay>
+                  {activeItem ? (
+                    <Box p={2} bg="var(--color-mist-white)" borderRadius="md" boxShadow="md">
+                      {activeItem.isDirectory ? <FiFolder /> : <FiFile />}
+                      <Text ml={2} fontSize="sm">
+                        {activeItem.name}
+                      </Text>
+                    </Box>
+                  ) : null}
+                </DragOverlay>
+              </DndContext>
+            </VStack>
+          </>
+        )}
       </Box>
 
       {/* Footer Actions */}
-      <Box p={2} borderTop="1px" borderColor="slate.100">
-        {isAddingFolder ? (
-          <HStack spacing={2}>
-            <Input
-              size="sm"
-              placeholder="Folder name..."
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              onKeyPress={handleNewFolderKeyPress}
-              autoFocus
-            />
-            <IconButton
-              aria-label="Confirm"
-              icon={<FiCheck />}
-              size="sm"
-              colorScheme="brand"
-              onClick={handleConfirmNewFolder}
-              isDisabled={!newFolderName.trim()}
-            />
-            <IconButton
-              aria-label="Cancel"
-              icon={<FiX />}
-              size="sm"
-              variant="ghost"
-              onClick={handleCancelNewFolder}
-            />
-          </HStack>
-        ) : (
-          <Button size="sm" width="100%" leftIcon={<FiFolder />} variant="ghost" onClick={handleNewFolder}>
-            New Folder
-          </Button>
-        )}
-      </Box>
+      {viewMode === 'notes' && (
+        <Box p={2} borderTop="1px" borderColor="slate.100">
+          {isAddingFolder ? (
+            <HStack spacing={2}>
+              <Input
+                size="sm"
+                placeholder="Folder name..."
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                onKeyPress={handleNewFolderKeyPress}
+                autoFocus
+              />
+              <IconButton
+                aria-label="Confirm"
+                icon={<FiCheck />}
+                size="sm"
+                colorScheme="brand"
+                onClick={handleConfirmNewFolder}
+                isDisabled={!newFolderName.trim()}
+              />
+              <IconButton
+                aria-label="Cancel"
+                icon={<FiX />}
+                size="sm"
+                variant="ghost"
+                onClick={handleCancelNewFolder}
+              />
+            </HStack>
+          ) : (
+            <Button size="sm" width="100%" leftIcon={<FiFolder />} variant="ghost" onClick={handleNewFolder}>
+              New Folder
+            </Button>
+          )}
+        </Box>
+      )}
 
       {/* Delete Confirmation Modal */}
       <Modal isOpen={isDeleteModalOpen} onClose={onDeleteModalClose} isCentered>

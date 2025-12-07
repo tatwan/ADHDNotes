@@ -11,12 +11,27 @@ export default defineConfig({
     electron([
       {
         // Main process entry file
-        entry: 'electron/main.ts',
+        entry: 'electron/entry.ts',
         vite: {
           build: {
             outDir: 'dist-electron',
             rollupOptions: {
-              external: ['electron', 'chokidar', 'electron-store']
+              external: [
+                'electron',
+                'chokidar',
+                'electron-store',
+                'better-sqlite3',
+                'drizzle-orm',
+                'fastify',
+                'jsdom',
+                '@mozilla/readability',
+                '@fastify/cors',
+                'cheerio',
+                'cheerio-select',
+                'htmlparser2',
+                'parse5',
+                'parse5-htmlparser2-tree-adapter'
+              ]
             }
           }
         }

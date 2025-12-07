@@ -3,6 +3,9 @@ import { join, dirname, resolve } from 'path';
 import { promises as fs } from 'fs';
 import chokidar from 'chokidar';
 import Store from 'electron-store';
+import { initDB, getDB, bookmarks, tags, bookmarksTags, highlights } from './db';
+import { startServer, stopServer } from './server/api';
+import { desc, eq } from 'drizzle-orm';
 
 const store = new Store();
 
@@ -287,6 +290,33 @@ function setupFileWatcher() {
     });
 }
 
+// Daily Note Appender
+ipcMain.handle('append-to-daily-note', async (_, text: string) => {
+  try {
+    const dailyDir = DEFAULT_DAILY_DIR;
+    await fs.mkdir(dailyDir, { recursive: true });
+
+    const today = new Date();
+    const fileName = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}.md`;
+    const filePath = join(dailyDir, fileName);
+
+    let content = '';
+    try {
+      content = await fs.readFile(filePath, 'utf-8');
+    } catch {
+      // file doesn't exist, start empty
+    }
+
+    const newContent = content ? `${content}\n\n${text}` : text;
+    await fs.writeFile(filePath, newContent, 'utf-8');
+
+    // Notify watcher? Watcher should pick it up automatically
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+});
+
 // IPC Handlers
 ipcMain.handle('get-daily-dir', () => {
   return DEFAULT_DAILY_DIR;
@@ -465,6 +495,49 @@ ipcMain.handle('store-set', (_, key: string, value: any) => {
   return { success: true };
 });
 
+// Bookmark Handlers
+ipcMain.handle('get-bookmarks', () => {
+  try {
+    const db = getDB();
+    const allBookmarks = db.select().from(bookmarks).orderBy(desc(bookmarks.createdAt)).all();
+    return { success: true, bookmarks: allBookmarks };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('get-bookmark', (_, id: number) => {
+  try {
+    const db = getDB();
+    const bookmark = db.select().from(bookmarks).where(eq(bookmarks.id, id)).get();
+    if (!bookmark) return { success: false, error: 'Not found' };
+
+    // Get tags
+    const associatedTags = db.select({
+      id: tags.id,
+      name: tags.name
+    })
+      .from(tags)
+      .innerJoin(bookmarksTags, eq(tags.id, bookmarksTags.tagId))
+      .where(eq(bookmarksTags.bookmarkId, id))
+      .all();
+
+    return { success: true, bookmark: { ...bookmark, tags: associatedTags } };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('delete-bookmark', (_, id: number) => {
+  try {
+    const db = getDB();
+    db.delete(bookmarks).where(eq(bookmarks.id, id)).run();
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+});
+
 // Theme handlers
 ipcMain.handle('list-themes', async () => {
   try {
@@ -532,6 +605,8 @@ ipcMain.handle('open-folder-dialog', async () => {
 // App lifecycle
 app.whenReady().then(async () => {
   await ensureDirectories();
+  initDB();
+  startServer();
   createWindow();
   createMenu();
   setupFileWatcher();
@@ -553,4 +628,5 @@ app.on('before-quit', () => {
   if (fileWatcher) {
     fileWatcher.close();
   }
+  stopServer();
 });

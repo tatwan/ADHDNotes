@@ -64,7 +64,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   onThemeFileDeleted: (callback: (filePath: string) => void) => {
     ipcRenderer.on('theme-file-deleted', (_, filePath) => callback(filePath));
-  }
+  },
+
+  // Bookmark operations
+  getBookmarks: () => ipcRenderer.invoke('get-bookmarks'),
+  getBookmark: (id: number) => ipcRenderer.invoke('get-bookmark', id),
+  deleteBookmark: (id: number) => ipcRenderer.invoke('delete-bookmark', id),
+  getTags: () => ipcRenderer.invoke('get-tags'),
+  appendToDailyNote: (text: string) => ipcRenderer.invoke('append-to-daily-note', text),
 });
 
 // Type definition for window.electronAPI
@@ -117,6 +124,12 @@ declare global {
       onThemeFileAdded: (callback: (filePath: string) => void) => void;
       onThemeFileChanged: (callback: (filePath: string) => void) => void;
       onThemeFileDeleted: (callback: (filePath: string) => void) => void;
+
+      getBookmarks: () => Promise<{ success: boolean; bookmarks?: any[]; error?: string }>;
+      getBookmark: (id: number) => Promise<{ success: boolean; bookmark?: any; error?: string }>;
+      deleteBookmark: (id: number) => Promise<{ success: boolean; error?: string }>;
+      getTags: () => Promise<{ success: boolean; tags?: any[]; error?: string }>;
+      appendToDailyNote: (text: string) => Promise<{ success: boolean; error?: string }>;
     };
   }
 }

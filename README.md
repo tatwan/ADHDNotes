@@ -1,20 +1,37 @@
 # ADHDNotes
 
-A local-first Electron desktop application for ADHD users that combines **markdown** note-taking with calendar integration and implements forced daily task prioritization through intentional friction.
+A local-first Electron desktop application for ADHD users that combines **markdown** note-taking with calendar integration, **offline bookmarking with content preservation**, and implements forced daily task prioritization through intentional friction.
 
 ### **Calendar (Daily) Notes: Task and Time Blocks**
 
 * Notes associated with the calendar 
 
-![image-20251025230752057](images/image-20251025230752057.png)
+![image-20251207151514246](images/image-20251207151514246.png)
 
 ### **General Notes ** 
 
 * Create non-calendar dependent notes (like any note taking tool)
 * All your notes are locally stored 
 * Full Markdown support 
+* Switch Themes and apply your own CSS theme
 
-![image-20251025231100264](images/image-20251025231100264.png)
+![image-20251207151552239](images/image-20251207151552239.png)
+
+### **Bookmarks & Offline Content**
+
+Save web articles, documentation, and resources directly into ADHDNotes with full offline access:
+
+- **Browser Extension Integration** - Save bookmarks from any website with a single click via the Chrome/Firefox extension
+- **Content Preservation** - Full article content extracted and stored locally using Mozilla Readability
+- **Offline Access** - Read saved content even without internet connection
+- **AI-Powered Tags** - Automatic tag generation to organize your bookmarks
+- **Local Asset Storage** - Images and favicons stored locally for complete offline experience
+- **Rich Metadata** - Automatically extracts title, description, and Open Graph data
+- **SQLite Database** - Fast, reliable local storage with full-text search capabilities
+
+The bookmarks feature runs a local Fastify API server (port 3666) that communicates with the browser extension, ensuring your data never leaves your machine.
+
+![image-20251207151742900](images/image-20251207151742900.png)
 
 ### **Daily Task Migration**
 
@@ -35,7 +52,7 @@ This is **intentional**! It forces you to:
 
 You cannot skip this - every task requires a decision.
 
-![image-20251026011101371](images/image-20251026011101371.png)
+![image-20251207151754132](images/image-20251207151754132.png)
 
 ## Features
 
@@ -49,6 +66,9 @@ You cannot skip this - every task requires a decision.
 - **Calendar Navigation**: Visual calendar for quick date jumping with indicators showing dates that have notes
 - **Timeline View**: Hour-based schedule (8 AM - 10 PM) with drag-and-drop task scheduling
 - **Forced Daily Migration**: ⭐ Core feature - manually review incomplete tasks from previous days (no automation, intentional friction for reflection)
+- **Offline Bookmarks**: ⭐ Save web content for offline access via browser extension with full content preservation
+- **AI-Powered Tagging**: Automatic tag generation for bookmarks using AI
+- **Local API Server**: Fastify server (port 3666) for browser extension communication
 - **Auto-Save**: Debounced auto-save with 3-second interval
 - **File Watcher**: Automatic detection of external file changes
 - **Branding**: New app icon and soft pastel UI color palette applied across the app UI to match the ADHDNotes aesthetic (Slate Ink, Calm Teal, Soft Lavender, Pastel Peach)
@@ -67,6 +87,10 @@ You cannot skip this - every task requires a decision.
 - **react-calendar**: Calendar component with date indicators
 - **chokidar**: File system watcher
 - **electron-store**: Local settings persistence
+- **Fastify**: Fast web framework for local API server
+- **better-sqlite3**: Native SQLite database for bookmarks
+- **Drizzle ORM**: Type-safe database ORM
+- **jsdom + @mozilla/readability**: Web content extraction and parsing
 
 ## Project Structure
 
@@ -74,13 +98,25 @@ You cannot skip this - every task requires a decision.
 app/
 ├── electron/               # Electron main process
 │   ├── main.ts            # Main process entry point
-│   └── preload.ts         # Security bridge (IPC)
+│   ├── entry.ts           # Entry point with polyfills
+│   ├── preload.ts         # Security bridge (IPC)
+│   ├── polyfills.ts       # Node.js polyfills for Electron
+│   ├── db/                # Database layer
+│   │   ├── index.ts       # Database initialization
+│   │   └── schema.ts      # Drizzle ORM schemas (bookmarks, tags, highlights)
+│   ├── server/            # Local API server
+│   │   └── api.ts         # Fastify routes for browser extension
+│   └── services/          # Business logic services
+│       ├── scraper.ts     # Web content extraction
+│       ├── ai.ts          # AI tag generation
+│       └── assets.ts      # Image/favicon downloads
 ├── src/                   # React application
 │   ├── components/        # React components
 │   │   ├── layout/       # AppLayout, Sidebar, RightPanel
 │   │   ├── editor/       # MarkdownEditor
 │   │   ├── calendar/     # CalendarView
 │   │   ├── timeline/     # Timeline, TimeSlot
+│   │   ├── bookmarks/    # BookmarksList, BookmarkReader
 │   │   └── modals/       # MigrationModal
 │   ├── stores/           # Zustand state management
 │   │   ├── noteStore.ts  # Note loading/saving
@@ -122,13 +158,14 @@ npm install
 Run the app in development mode:
 
 ```bash
-npm run electron:dev
+npm run dev
 ```
 
 This will:
 - Start Vite dev server on http://localhost:5173
 - Launch Electron with hot reload enabled
-- Open DevTools automatically
+- Start local API server on http://localhost:3666 (for browser extension)
+- Open DevTools automatically (optional)
 
 ## Building
 
@@ -153,12 +190,19 @@ On first launch, the app creates this structure in your Documents folder:
 │   ├── 2025-10-25.md
 │   ├── 2025-10-26.md
 │   └── 2025-10-27.md
-└── projects/
-    ├── Work/
-    │   ├── Project Alpha.md
-    │   └── Sprint Planning.md
-    └── Personal/
-        └── Goals 2025.md
+├── Notes/
+│   ├── Work/
+│   │   ├── Project Alpha.md
+│   │   └── Sprint Planning.md
+│   └── Personal/
+│       └── Goals 2025.md
+├── themes/
+│   ├── default-light.css
+│   └── default-dark.css
+├── bookmarks.db          # SQLite database for bookmarks
+└── assets/              # Downloaded images and favicons
+    ├── favicon-1.png
+    └── image-2.jpg
 ```
 
 ## Markdown Syntax
@@ -237,19 +281,21 @@ Settings are stored in `electron-store` and include:
 - Context isolation enabled
 - No Node.js integration in renderer
 - All file operations validated to stay within notes directory
-- No network access (except future calendar sync)
+- Local API server (port 3666) only accepts connections from localhost
+- No external network access - all data stays on your machine
+- Bookmarks database encrypted at rest (optional)
 
-## Future Features (Not in MVP)
+## Future Features
 
 - Google Calendar integration
 - Microsoft Calendar integration
-- Dark mode
-- Custom themes
-- Markdown preview pane
-- Search across all notes
-- Tags and backlinks
-- Export to PDF
+- Full-text search across notes and bookmarks
+- Browser extension for Chrome and Firefox (in beta)
+- Bookmark collections and advanced filtering
+- Markdown export for bookmarks
+- PDF export for notes
 - Mobile companion app
+- Cloud sync (optional, encrypted)
 
 ## Contributing
 
