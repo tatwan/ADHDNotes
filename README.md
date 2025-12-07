@@ -8,7 +8,7 @@ A local-first Electron desktop application for ADHD users that combines **markdo
 
 ![image-20251207151514246](images/image-20251207151514246.png)
 
-### **General Notes ** 
+### **General Notes** 
 
 * Create non-calendar dependent notes (like any note taking tool)
 * All your notes are locally stored 
