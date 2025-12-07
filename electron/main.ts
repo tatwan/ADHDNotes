@@ -229,8 +229,8 @@ function createWindow() {
     // the icon helps for Windows/Linux and in dev builds.
     titleBarStyle: 'default',
     icon: (process.env.VITE_DEV_SERVER_URL)
-      ? join(process.cwd(), 'img', 'icon_latest_version.png')
-      : join(__dirname, '..', 'img', 'icon_latest_version.png'),
+      ? join(process.cwd(), 'img', 'desktop_icon.png')
+      : join(__dirname, '..', 'img', 'desktop_icon.png'),
     show: false
   });
 

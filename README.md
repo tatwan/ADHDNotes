@@ -1,4 +1,6 @@
-# ADHDNotes
+<img src="images/icon_latest_version.png" alt="icon_latest_version" style="zoom:30%;" />
+
+# ADHDNotes 
 
 A local-first Electron desktop application for ADHD users that combines **markdown** note-taking with calendar integration, **offline bookmarking with content preservation**, and implements forced daily task prioritization through intentional friction.
 
