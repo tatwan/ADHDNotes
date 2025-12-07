@@ -2,9 +2,10 @@ import { Box, Flex } from '@chakra-ui/react';
 import { useAppStore } from '@stores/appStore';
 import Sidebar from './Sidebar';
 import RightPanel from './RightPanel';
-import MarkdownEditor from '@components/editor/MarkdownEditor';
+import MarkdownEditor from '../editor/MarkdownEditor';
 import { useBookmarkStore } from '@stores/bookmarkStore';
-import BookmarkReader from '@components/bookmarks/BookmarkReader';
+import BookmarkReader from '../bookmarks/BookmarkReader';
+import SnippetViewer from '../snippets/SnippetViewer';
 
 const AppLayout = () => {
   const { sidebarExpanded, rightPanelExpanded } = useAppStore();
@@ -29,9 +30,9 @@ const AppLayout = () => {
         {sidebarExpanded && <Sidebar />}
       </Box>
 
-      {/* Main Editor Area */}
-      <Box flex="1" height="100vh" overflow="hidden" bg="slate.50">
-        {viewMode === 'bookmarks' ? <BookmarkReader /> : <MarkdownEditor />}
+      {/* Main Content Area */}
+      <Box flex="1" overflow="hidden" display="flex" flexDirection="column" position="relative">
+        {viewMode === 'bookmarks' ? <BookmarkReader /> : viewMode === 'snippets' ? <SnippetViewer /> : <MarkdownEditor />}
       </Box>
 
       {/* Right Panel - Calendar and Timeline */}

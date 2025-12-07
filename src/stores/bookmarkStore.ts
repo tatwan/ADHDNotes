@@ -22,15 +22,16 @@ interface BookmarkState {
     bookmarks: Bookmark[];
     tags: Tag[];
     selectedBookmarkId: number | null;
-    viewMode: 'notes' | 'bookmarks';
+    viewMode: 'notes' | 'bookmarks' | 'snippets';
     isLoading: boolean;
 
     // Actions
-    setViewMode: (mode: 'notes' | 'bookmarks') => void;
+    setViewMode: (mode: 'notes' | 'bookmarks' | 'snippets') => void;
     selectBookmark: (id: number | null) => void;
     fetchBookmarks: () => Promise<void>;
     fetchTags: () => Promise<void>;
     deleteBookmark: (id: number) => Promise<void>;
+    deleteAllBookmarks: () => Promise<void>;
 
     // Getters
     getSelectedBookmark: () => Bookmark | undefined;
@@ -88,6 +89,18 @@ export const useBookmarkStore = create<BookmarkState>((set, get) => ({
             }
         } catch (error) {
             console.error("Error deleting bookmark:", error);
+        }
+    },
+
+    deleteAllBookmarks: async () => {
+        try {
+            // @ts-ignore
+            const result = await window.electronAPI.deleteAllBookmarks();
+            if (result.success) {
+                set({ bookmarks: [], selectedBookmarkId: null });
+            }
+        } catch (error) {
+            console.error("Error deleting all bookmarks:", error);
         }
     },
 

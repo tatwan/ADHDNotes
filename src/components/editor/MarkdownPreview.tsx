@@ -96,14 +96,14 @@ const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange, currentFile
       return (
         <div
           style={{
-              padding: '1em',
-              background: 'var(--color-mist-white)',
-              border: '1px solid var(--color-cool-grey-2)',
-              borderRadius: 4,
-              color: 'var(--color-cool-grey-2)',
-              fontSize: '0.9em',
-              margin: '0.5em 0'
-            }}
+            padding: '1em',
+            background: 'var(--color-mist-white)',
+            border: '1px solid var(--color-cool-grey-2)',
+            borderRadius: 4,
+            color: 'var(--color-cool-grey-2)',
+            fontSize: '0.9em',
+            margin: '0.5em 0'
+          }}
           title={title}
         >
           📷 Image not found: {alt || src}
@@ -115,14 +115,14 @@ const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange, currentFile
       return (
         <div
           style={{
-              padding: '1em',
-              background: 'var(--color-mist-white)',
-              border: '1px solid var(--color-cool-grey-2)',
-              borderRadius: 4,
-              color: 'var(--color-cool-grey-2)',
-              fontSize: '0.9em',
-              margin: '0.5em 0'
-            }}
+            padding: '1em',
+            background: 'var(--color-mist-white)',
+            border: '1px solid var(--color-cool-grey-2)',
+            borderRadius: 4,
+            color: 'var(--color-cool-grey-2)',
+            fontSize: '0.9em',
+            margin: '0.5em 0'
+          }}
           title={title}
         >
           📷 Loading image...
@@ -176,7 +176,7 @@ const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange, currentFile
     const target = e.target as HTMLElement;
     if (target.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox') {
       const checkbox = target as HTMLInputElement;
-      
+
       // Find the parent li element
       const li = target.closest('li');
       if (li) {
@@ -193,6 +193,32 @@ const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange, currentFile
       }
     }
   };
+
+  // Custom anchor component to open external links in default browser
+  const LinkComponent = ({ href, children, ...props }: any) => {
+    const handleClick = async (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+        try {
+          await window.electronAPI.openExternal(href);
+        } catch (error) {
+          console.error('Failed to open external link:', error);
+        }
+      }
+    };
+
+    return (
+      <a
+        href={href}
+        onClick={handleClick}
+        style={{ color: 'var(--color-link)', textDecoration: 'underline', cursor: 'pointer' }}
+        {...props}
+      >
+        {children}
+      </a>
+    );
+  };
+
   return (
     <Box
       ref={containerRef}
@@ -220,6 +246,7 @@ const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange, currentFile
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
         components={{
+          a: LinkComponent,
           img: ImageComponent,
           code: ({ node, inline, className, children, ...props }: any) => {
             // For code blocks (not inline code), add md-fences class for theme styling
@@ -242,9 +269,9 @@ const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange, currentFile
             // theme CSS rules like "blockquote>h3:first-child"
             // If the blockquote contains only a single paragraph with a single header,
             // unwrap it to match Typora's structure
-            
+
             const childArray = Array.isArray(children) ? children : [children];
-            
+
             // Filter out text nodes that are just whitespace
             const contentNodes = childArray.filter((child: any) => {
               if (typeof child === 'string') {
@@ -252,14 +279,14 @@ const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange, currentFile
               }
               return child != null;
             });
-            
+
             // Check if there's exactly one <p> element
             if (contentNodes.length === 1 && contentNodes[0]?.type === 'p') {
               const pElement = contentNodes[0];
-              const pChildren = Array.isArray(pElement.props?.children) 
-                ? pElement.props.children 
+              const pChildren = Array.isArray(pElement.props?.children)
+                ? pElement.props.children
                 : [pElement.props?.children];
-              
+
               // Filter out whitespace from p's children
               const pContentNodes = pChildren.filter((child: any) => {
                 if (typeof child === 'string') {
@@ -267,7 +294,7 @@ const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange, currentFile
                 }
                 return child != null;
               });
-              
+
               // If the <p> contains only one header element, unwrap it
               if (pContentNodes.length === 1 && pContentNodes[0]?.type?.match(/^h[1-6]$/)) {
                 return (
@@ -277,7 +304,7 @@ const MarkdownPreview = ({ content, fontSize = 14, onCheckboxChange, currentFile
                 );
               }
             }
-            
+
             // Otherwise, render normally
             return <blockquote {...props}>{children}</blockquote>;
           }

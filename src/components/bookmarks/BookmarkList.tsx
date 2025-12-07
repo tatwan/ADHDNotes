@@ -1,7 +1,7 @@
 import { Box, Text, VStack, IconButton, Flex, Image, Badge, HStack } from '@chakra-ui/react';
 import { useBookmarkStore, Bookmark } from '../../stores/bookmarkStore';
 import { useEffect } from 'react';
-import { FiTrash2 } from 'react-icons/fi';
+import { FiTrash2, FiRefreshCw } from 'react-icons/fi';
 
 const BookmarkCard = ({ bookmark }: { bookmark: Bookmark }) => {
     const { selectBookmark, selectedBookmarkId, deleteBookmark } = useBookmarkStore();
@@ -61,7 +61,7 @@ const BookmarkCard = ({ bookmark }: { bookmark: Bookmark }) => {
 };
 
 const BookmarkList = () => {
-    const { bookmarks, fetchBookmarks, isLoading } = useBookmarkStore();
+    const { bookmarks, fetchBookmarks, isLoading, deleteAllBookmarks } = useBookmarkStore();
 
     useEffect(() => {
         fetchBookmarks();
@@ -69,6 +69,12 @@ const BookmarkList = () => {
         const interval = setInterval(fetchBookmarks, 5000); // Poll for new bookmarks
         return () => clearInterval(interval);
     }, [fetchBookmarks]);
+
+    const handleDeleteAll = () => {
+        if (confirm(`Are you sure you want to delete all ${bookmarks.length} bookmarks? This cannot be undone.`)) {
+            deleteAllBookmarks();
+        }
+    };
 
     if (isLoading && bookmarks.length === 0) {
         return <Box p={4} textAlign="center"><Text fontSize="sm" color="gray.500">Loading...</Text></Box>;
@@ -88,11 +94,37 @@ const BookmarkList = () => {
     }
 
     return (
-        <VStack spacing={2} align="stretch" p={2} overflowY="auto" flex={1}>
-            {bookmarks.map(b => (
-                <BookmarkCard key={b.id} bookmark={b} />
-            ))}
-        </VStack>
+        <Box>
+            {/* Header with refresh button */}
+            <Flex justify="space-between" align="center" p={2} mb={2}>
+                <Text fontSize="sm" fontWeight="medium" color="gray.600">
+                    {bookmarks.length} {bookmarks.length === 1 ? 'bookmark' : 'bookmarks'}
+                </Text>
+                <HStack>
+                    <IconButton
+                        aria-label="Refresh bookmarks"
+                        icon={<FiRefreshCw />}
+                        size="xs"
+                        variant="ghost"
+                        onClick={fetchBookmarks}
+                    />
+                    <IconButton
+                        aria-label="Delete all bookmarks"
+                        icon={<FiTrash2 />}
+                        size="xs"
+                        variant="ghost"
+                        colorScheme="red"
+                        onClick={handleDeleteAll}
+                    />
+                </HStack>
+            </Flex>
+
+            <VStack spacing={2} align="stretch" p={2} overflowY="auto" flex={1}>
+                {bookmarks.map(b => (
+                    <BookmarkCard key={b.id} bookmark={b} />
+                ))}
+            </VStack>
+        </Box>
     );
 };
 

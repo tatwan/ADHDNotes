@@ -31,3 +31,12 @@ export const highlights = sqliteTable('highlights', {
     color: text('color'),
     createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(new Date()),
 });
+
+export const snippets = sqliteTable('snippets', {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    content: text('content').notNull(), // The highlighted text as markdown
+    url: text('url').notNull(), // Source page URL
+    title: text('title'), // Source page title
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(new Date()),
+});

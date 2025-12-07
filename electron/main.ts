@@ -1,9 +1,9 @@
-import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, dialog, shell } from 'electron';
 import { join, dirname, resolve } from 'path';
 import { promises as fs } from 'fs';
 import chokidar from 'chokidar';
 import Store from 'electron-store';
-import { initDB, getDB, bookmarks, tags, bookmarksTags, highlights } from './db';
+import { initDB, getDB, bookmarks, tags, bookmarksTags, highlights, snippets } from './db';
 import { startServer, stopServer } from './server/api';
 import { desc, eq } from 'drizzle-orm';
 
@@ -538,6 +538,72 @@ ipcMain.handle('delete-bookmark', (_, id: number) => {
   }
 });
 
+// Snippet Handlers
+ipcMain.handle('get-snippets', () => {
+  try {
+    const db = getDB();
+    const allSnippets = db.select().from(snippets).orderBy(desc(snippets.createdAt)).all();
+    return { success: true, snippets: allSnippets };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('get-snippet', (_, id: number) => {
+  try {
+    const db = getDB();
+    const snippet = db.select().from(snippets).where(eq(snippets.id, id)).get();
+    if (!snippet) return { success: false, error: 'Not found' };
+    return { success: true, snippet };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('update-snippet', (_, id: number, content: string) => {
+  try {
+    const db = getDB();
+    db.update(snippets)
+      .set({ content, updatedAt: new Date() })
+      .where(eq(snippets.id, id))
+      .run();
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('delete-snippet', (_, id: number) => {
+  try {
+    const db = getDB();
+    db.delete(snippets).where(eq(snippets.id, id)).run();
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('delete-all-snippets', () => {
+  try {
+    const db = getDB();
+    db.delete(snippets).run();
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('delete-all-bookmarks', () => {
+  try {
+    const db = getDB();
+    db.delete(bookmarks).run();
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+});
+
+
 // Theme handlers
 ipcMain.handle('list-themes', async () => {
   try {
@@ -581,6 +647,16 @@ ipcMain.handle('read-theme-file', async (_, fileName: string) => {
 
     const content = await fs.readFile(filePath, 'utf-8');
     return { success: true, content };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Open external URL handler
+ipcMain.handle('open-external', async (_, url: string) => {
+  try {
+    await shell.openExternal(url);
+    return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
   }

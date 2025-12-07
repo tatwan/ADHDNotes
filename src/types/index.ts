@@ -49,6 +49,16 @@ export interface FileTreeItem {
   modified: string;
 }
 
+export interface Snippet {
+  id: number;
+  content: string; // Markdown text
+  url: string; // Source page URL
+  title: string; // Source page title
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+
 export interface CalendarEvent {
   id: string;
   title: string;
@@ -265,6 +275,20 @@ declare global {
       onThemeFileAdded: (callback: (filePath: string) => void) => void;
       onThemeFileChanged: (callback: (filePath: string) => void) => void;
       onThemeFileDeleted: (callback: (filePath: string) => void) => void;
+
+      getBookmarks: () => Promise<{ success: boolean; bookmarks?: any[]; error?: string }>;
+      getBookmark: (id: number) => Promise<{ success: boolean; bookmark?: any; error?: string }>;
+      deleteBookmark: (id: number) => Promise<{ success: boolean; error?: string }>;
+      deleteAllBookmarks: () => Promise<{ success: boolean; error?: string }>;
+      getTags: () => Promise<{ success: boolean; tags?: any[]; error?: string }>;
+      appendToDailyNote: (text: string) => Promise<{ success: boolean; error?: string }>;
+      openExternal: (url: string) => Promise<{ success: boolean; error?: string }>;
+
+      getSnippets: () => Promise<{ success: boolean; snippets?: Snippet[]; error?: string }>;
+      getSnippet: (id: number) => Promise<{ success: boolean; snippet?: Snippet; error?: string }>;
+      updateSnippet: (id: number, content: string) => Promise<{ success: boolean; error?: string }>;
+      deleteSnippet: (id: number) => Promise<{ success: boolean; error?: string }>;
+      deleteAllSnippets: () => Promise<{ success: boolean; error?: string }>;
     };
   }
 }

@@ -4,6 +4,7 @@ import { useAppStore } from '@stores/appStore';
 import { useNoteStore } from '@stores/noteStore';
 import { useBookmarkStore } from '@stores/bookmarkStore';
 import BookmarkList from '../bookmarks/BookmarkList';
+import SnippetList from '../snippets/SnippetList';
 import { FileTreeItem } from '@/types';
 import { join, dirname } from 'path-browserify';
 import { getProjectsDir, deleteFile, renameFile, copyFile, createFolder } from '@utils/fileSystem';
@@ -596,12 +597,22 @@ const Sidebar = () => {
         >
           Bookmarks
         </Button>
+        <Button
+          size="xs"
+          onClick={() => setViewMode('snippets')}
+          variant={viewMode === 'snippets' ? 'solid' : 'ghost'}
+          colorScheme={viewMode === 'snippets' ? 'brand' : 'gray'}
+        >
+          Snippets
+        </Button>
       </Flex>
 
-      {/* File Tree or Bookmarks */}
+      {/* File Tree, Bookmarks, or Snippets */}
       <Box flex="1" overflow="auto" p={2} display="flex" flexDirection="column">
         {viewMode === 'bookmarks' ? (
           <BookmarkList />
+        ) : viewMode === 'snippets' ? (
+          <SnippetList />
         ) : (
           <>
             {/* Search and Refresh Bar */}

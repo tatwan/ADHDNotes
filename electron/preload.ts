@@ -70,8 +70,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getBookmarks: () => ipcRenderer.invoke('get-bookmarks'),
   getBookmark: (id: number) => ipcRenderer.invoke('get-bookmark', id),
   deleteBookmark: (id: number) => ipcRenderer.invoke('delete-bookmark', id),
+  deleteAllBookmarks: () => ipcRenderer.invoke('delete-all-bookmarks'),
   getTags: () => ipcRenderer.invoke('get-tags'),
   appendToDailyNote: (text: string) => ipcRenderer.invoke('append-to-daily-note', text),
+
+  // Open external URL
+  openExternal: (url: string) => ipcRenderer.invoke('open-external', url),
+
+  // Snippet operations
+  getSnippets: () => ipcRenderer.invoke('get-snippets'),
+  getSnippet: (id: number) => ipcRenderer.invoke('get-snippet', id),
+  updateSnippet: (id: number, content: string) => ipcRenderer.invoke('update-snippet', id, content),
+  deleteSnippet: (id: number) => ipcRenderer.invoke('delete-snippet', id),
+  deleteAllSnippets: () => ipcRenderer.invoke('delete-all-snippets'),
 });
 
 // Type definition for window.electronAPI
@@ -130,6 +141,7 @@ declare global {
       deleteBookmark: (id: number) => Promise<{ success: boolean; error?: string }>;
       getTags: () => Promise<{ success: boolean; tags?: any[]; error?: string }>;
       appendToDailyNote: (text: string) => Promise<{ success: boolean; error?: string }>;
+      openExternal: (url: string) => Promise<{ success: boolean; error?: string }>;
     };
   }
 }

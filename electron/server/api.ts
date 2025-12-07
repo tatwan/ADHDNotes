@@ -1,6 +1,6 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
-import { getDB, bookmarks, tags, bookmarksTags } from '../db';
+import { getDB, bookmarks, tags, bookmarksTags, snippets } from '../db';
 import { scrapeUrl } from '../services/scraper';
 import { generateTags } from '../services/ai';
 import { eq } from 'drizzle-orm';
@@ -85,6 +85,32 @@ fastify.post('/api/save-bookmark', async (request, reply) => {
     } catch (err) {
         request.log.error(err);
         return reply.status(500).send({ error: 'Failed to save bookmark' });
+    }
+});
+
+fastify.post('/api/save-snippet', async (request, reply) => {
+    const { url, title, content } = request.body as { url: string, title?: string, content: string };
+
+    if (!url || !content) {
+        return reply.status(400).send({ error: 'URL and content are required' });
+    }
+
+    try {
+        const db = getDB();
+
+        // Insert snippet
+        const result = db.insert(snippets).values({
+            url,
+            title: title || '',
+            content,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        }).returning().get();
+
+        return { success: true, snippet: result };
+    } catch (err) {
+        request.log.error(err);
+        return reply.status(500).send({ error: 'Failed to save snippet' });
     }
 });
 
