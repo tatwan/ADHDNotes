@@ -191,6 +191,60 @@ This will:
 - Start local API server on http://localhost:3666 (for browser extension)
 - Open DevTools automatically (optional)
 
+## Browser Extension Installation
+
+To use the Bookmarks and Snippets features, you need to install the browser extension:
+
+### Building the Extension
+
+1. Navigate to the extension directory:
+```bash
+cd extension
+```
+
+2. Install dependencies (if not already installed):
+```bash
+npm install
+```
+
+3. Build the extension:
+```bash
+npm run build
+```
+
+This creates the extension files in `extension/dist/`.
+
+### Installing in Chrome/Edge
+
+1. Open Chrome/Edge and navigate to:
+   - Chrome: `chrome://extensions/`
+   - Edge: `edge://extensions/`
+
+2. Enable **Developer mode** (toggle in top-right corner)
+
+3. Click **Load unpacked**
+
+4. Select the `extension/dist` folder
+
+5. The ADHDNotes extension should now appear in your extensions list
+
+### Using the Extension
+
+Once installed, you can:
+
+- **Save Bookmarks**: Right-click on any page → "Save to ADHDNotes"
+- **Save Snippets**: Highlight text → Right-click → "Add as Snippet"
+
+**Note**: The ADHDNotes desktop app must be running for the extension to work (it communicates via localhost:3666).
+
+### Updating the Extension
+
+After making changes to the extension code:
+
+1. Rebuild: `cd extension && npm run build`
+2. Go to `chrome://extensions/`
+3. Click the refresh icon (🔄) on the ADHDNotes extension card
+
 ## Building
 
 Build the application for distribution:
@@ -270,13 +324,16 @@ The calendar shows blue dots on dates that have notes, making it easy to see whi
 
 When you navigate to a new day, if there are incomplete tasks from the previous day, you'll see a modal that blocks the app until you process each task. This is **intentional friction** designed to help ADHD users:
 
-- **No "skip" button** - You must review every task
-- **No "move all" button** - Each decision is manual
-- **Two choices per task**:
+- **No "skip" button** - You must review your tasks
+- **Flexible processing** - Review tasks individually or use bulk actions
+- **Per-task choices**:
   - **Move to Today** - Copy task to today's note
   - **Not Important** - Dismiss the task
+- **Bulk actions available**:
+  - **Move All** - Move all remaining tasks to today at once
+  - **Ignore All** - Dismiss all remaining tasks at once
 
-This forces reflection and prioritization, preventing endless task accumulation.
+You can choose to review each task individually (allowing you to move some and ignore others), or use the bulk actions to quickly process all remaining tasks. This provides flexibility while still requiring conscious engagement with your task backlog.
 
 ## Settings
 
