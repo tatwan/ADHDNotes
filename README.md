@@ -31,7 +31,27 @@ Save web articles, documentation, and resources directly into ADHDNotes with ful
 
 The bookmarks feature runs a local Fastify API server (port 3666) that communicates with the browser extension, ensuring your data never leaves your machine.
 
-![image-20251207151742900](images/image-20251207151742900.png)
+![image-20251207164637488](images/image-20251207164637488.png)
+
+### **Snippets**
+
+Capture and save highlighted text from any webpage as editable markdown snippets:
+
+- **Quick Capture** - Highlight text on any website, right-click, and select "Add as Snippet"
+- **Markdown Storage** - All snippets saved as editable markdown for easy formatting and organization
+- **Source Tracking** - Automatically captures page URL, title, and timestamp for reference
+- **Edit Anytime** - Full markdown editor for modifying and enhancing your saved snippets
+- **Multiple Snippets** - Save multiple snippets from the same page with individual timestamps
+- **Bulk Management** - Refresh list and delete all snippets with one click
+- **Offline Access** - All snippets stored locally in SQLite database
+
+Perfect for saving quotes, code examples, research notes, or any text you want to reference later!
+
+![image-20251207164652262](images/image-20251207164652262.png)
+
+You edit your snippets in markdown:
+
+![image-20251207164712594](images/image-20251207164712594.png)
 
 ### **Daily Task Migration**
 
@@ -67,6 +87,7 @@ You cannot skip this - every task requires a decision.
 - **Timeline View**: Hour-based schedule (8 AM - 10 PM) with drag-and-drop task scheduling
 - **Forced Daily Migration**: ⭐ Core feature - manually review incomplete tasks from previous days (no automation, intentional friction for reflection)
 - **Offline Bookmarks**: ⭐ Save web content for offline access via browser extension with full content preservation
+- **Snippets**: ⭐ Capture highlighted text from any webpage as editable markdown with source tracking
 - **AI-Powered Tagging**: Automatic tag generation for bookmarks using AI
 - **Local API Server**: Fastify server (port 3666) for browser extension communication
 - **Auto-Save**: Debounced auto-save with 3-second interval
@@ -103,7 +124,7 @@ app/
 │   ├── polyfills.ts       # Node.js polyfills for Electron
 │   ├── db/                # Database layer
 │   │   ├── index.ts       # Database initialization
-│   │   └── schema.ts      # Drizzle ORM schemas (bookmarks, tags, highlights)
+│   │   └── schema.ts      # Drizzle ORM schemas (bookmarks, tags, highlights, snippets)
 │   ├── server/            # Local API server
 │   │   └── api.ts         # Fastify routes for browser extension
 │   └── services/          # Business logic services
@@ -117,10 +138,13 @@ app/
 │   │   ├── calendar/     # CalendarView
 │   │   ├── timeline/     # Timeline, TimeSlot
 │   │   ├── bookmarks/    # BookmarksList, BookmarkReader
+│   │   ├── snippets/     # SnippetList, SnippetViewer
 │   │   └── modals/       # MigrationModal
 │   ├── stores/           # Zustand state management
 │   │   ├── noteStore.ts  # Note loading/saving
 │   │   ├── taskStore.ts  # Task operations
+│   │   ├── bookmarkStore.ts # Bookmark management
+│   │   ├── snippetStore.ts  # Snippet management
 │   │   └── appStore.ts   # App settings & migration
 │   ├── utils/            # Utility functions
 │   │   ├── fileSystem.ts       # File operations
