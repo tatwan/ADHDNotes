@@ -1,7 +1,5 @@
 <img src="images/icon_latest_version.png" alt="icon_latest_version" style="width:20%;" />
 
-# ADHDNotes
-
 A local-first Electron desktop application for ADHD users that combines **markdown** note-taking with calendar integration, **offline bookmarking with content preservation**, and implements forced daily task prioritization through intentional friction.
 
 ### **Calendar (Daily) Notes: Task and Time Blocks**
@@ -31,6 +29,8 @@ Save web articles, documentation, and resources directly into ADHDNotes with ful
 - **Rich Metadata** - Automatically extracts title, description, and Open Graph data
 - **SQLite Database** - Fast, reliable local storage with full-text search capabilities
 
+<img src="images/image-20251208142421826.png" alt="image-20251208142421826" style="zoom:50%;" />
+
 The bookmarks feature runs a local Fastify API server (port 3666) that communicates with the browser extension, ensuring your data never leaves your machine.
 
 ![image-20251207164637488](images/image-20251207164637488.png)
@@ -46,6 +46,8 @@ Capture and save highlighted text from any webpage as editable markdown snippets
 - **Multiple Snippets** - Save multiple snippets from the same page with individual timestamps
 - **Bulk Management** - Refresh list and delete all snippets with one click
 - **Offline Access** - All snippets stored locally in SQLite database
+
+<img src="images/image-20251208142249024.png" alt="image-20251208142249024" style="zoom:50%;" />
 
 Perfect for saving quotes, code examples, research notes, or any text you want to reference later!
 
