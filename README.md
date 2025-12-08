@@ -1,4 +1,8 @@
-<img src="images/icon_latest_version.png" alt="icon_latest_version" style="width:20%;" />
+<p align="center">
+  <img src="images/icon_latest_version.png" alt="icon_latest_version" style="width:20%;" />
+</p>
+
+# ADHDNotes
 
 A local-first Electron desktop application for ADHD users that combines **markdown** note-taking with calendar integration, **offline bookmarking with content preservation**, and implements forced daily task prioritization through intentional friction.
 
@@ -29,7 +33,9 @@ Save web articles, documentation, and resources directly into ADHDNotes with ful
 - **Rich Metadata** - Automatically extracts title, description, and Open Graph data
 - **SQLite Database** - Fast, reliable local storage with full-text search capabilities
 
-<img src="images/image-20251208142421826.png" alt="image-20251208142421826" style="zoom:50%;" />
+<p align="center">
+  <img src="images/image-20251208142421826.png" alt="image-20251208142421826" style="width:35%;" />
+</p>
 
 The bookmarks feature runs a local Fastify API server (port 3666) that communicates with the browser extension, ensuring your data never leaves your machine.
 
