@@ -1,5 +1,4 @@
 <p align="center">
-  
   <img src="images/icon_latest_version.png" alt="icon_latest_version" style="width:20%;" />
 </p>
 
@@ -71,8 +70,9 @@ Save web articles, documentation, and resources directly into ADHDNotes with ful
 - **SQLite Database** - Fast, reliable local storage with full-text search capabilities
 
 <p align="center">
-  <img src="images/image-20251208142421826.png" alt="image-20251208142421826" style="width:35%;" />
+  <img src="images/image-20251208142421826.png" alt="chrome extension" style="width:35%;" />
 </p>
+
 
 The bookmarks feature runs a local Fastify API server (port 3666) that communicates with the browser extension, ensuring your data never leaves your machine.
 
@@ -90,7 +90,7 @@ Capture and save highlighted text from any webpage as editable markdown snippets
 - **Bulk Management** - Refresh list and delete all snippets with one click
 - **Offline Access** - All snippets stored locally in SQLite database
 
-<img src="images/image-20251208142249024.png" alt="image-20251208142249024" style="zoom:50%;" />
+<img src="images/image-20251208142249024.png" alt="right-click to save example" style="zoom:50%;" />
 
 Perfect for saving quotes, code examples, research notes, or any text you want to reference later!
 
@@ -262,6 +262,10 @@ npm run build
 This creates the extension files in `extension/dist/`.
 
 ### Installing in Chrome/Edge
+
+<p align="center">
+  <img src="images/image-20251208142421826.png" alt="chrome extension" style="width:35%;" />
+</p>
 
 1. Open Chrome/Edge and navigate to:
    - Chrome: `chrome://extensions/`
