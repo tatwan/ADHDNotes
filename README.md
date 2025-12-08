@@ -1,7 +1,44 @@
 <p align="center">
+  
   <img src="images/icon_latest_version.png" alt="icon_latest_version" style="width:20%;" />
 </p>
 
+<p align="center">
+  <!-- Stars / Forks (social) -->
+  <a href="https://github.com/tatwan/ADHDNotes/stargazers">
+    <img alt="GitHub stars" src="https://img.shields.io/github/stars/tatwan/ADHDNotes?style=social">
+  </a>
+  <a href="https://github.com/tatwan/ADHDNotes/network/members">
+    <img alt="GitHub forks" src="https://img.shields.io/github/forks/tatwan/ADHDNotes?style=social">
+  </a>
+
+  <!-- Issues / PRs -->
+  <a href="https://github.com/tatwan/ADHDNotes/issues">
+    <img alt="Open issues" src="https://img.shields.io/github/issues/tatwan/ADHDNotes">
+  </a>
+  <a href="https://github.com/tatwan/ADHDNotes/pulls">
+    <img alt="Open pull requests" src="https://img.shields.io/github/issues-pr/tatwan/ADHDNotes">
+  </a>
+
+  <!-- Last commit / Repo size / Top language -->
+  <a href="https://github.com/tatwan/ADHDNotes/commits">
+    <img alt="Last commit" src="https://img.shields.io/github/last-commit/tatwan/ADHDNotes">
+  </a>
+  <a href="https://github.com/tatwan/ADHDNotes">
+    <img alt="Repo size" src="https://img.shields.io/github/repo-size/tatwan/ADHDNotes">
+  </a>
+  <a href="https://github.com/tatwan/ADHDNotes">
+    <img alt="Top language" src="https://img.shields.io/github/languages/top/tatwan/ADHDNotes">
+  </a>
+
+
+
+  <!-- Tech stack quick badges -->
+  <img alt="Electron" src="https://img.shields.io/badge/Electron-%E2%89%A5%2010.0-white?logo=electron&color=2bbc8a">
+  <img alt="React" src="https://img.shields.io/badge/React-%5E18.0.0-blue?logo=react">
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-%5E4.0-blue?logo=typescript">
+  <img alt="Vite" src="https://img.shields.io/badge/Vite-%5E5.0-yellow?logo=vite">
+</p>
 # ADHDNotes
 
 A local-first Electron desktop application for ADHD users that combines **markdown** note-taking with calendar integration, **offline bookmarking with content preservation**, and implements forced daily task prioritization through intentional friction.
