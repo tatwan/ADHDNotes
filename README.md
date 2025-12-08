@@ -38,6 +38,7 @@
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-%5E4.0-blue?logo=typescript">
   <img alt="Vite" src="https://img.shields.io/badge/Vite-%5E5.0-yellow?logo=vite">
 </p>
+
 # ADHDNotes
 
 A local-first Electron desktop application for ADHD users that combines **markdown** note-taking with calendar integration, **offline bookmarking with content preservation**, and implements forced daily task prioritization through intentional friction.
