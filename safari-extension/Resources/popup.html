@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADHDNotes Clipper</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="popup-container">
+        <h2>ADHDNotes Clipper</h2>
+        
+        <div id="status" class="status checking">
+            <span id="status-dot" class="dot checking"></span>
+            <span id="status-text">Checking...</span>
+        </div>
+        
+        <p id="error-message" class="error" style="display: none;">
+            Make sure ADHDNotes is running.
+        </p>
+        
+        <button id="save-page-btn" disabled>
+            Save Current Page
+        </button>
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>
