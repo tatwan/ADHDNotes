@@ -136,10 +136,29 @@ const SnippetViewer = () => {
                             'li': { mb: 1 },
                             'code': { bg: 'gray.100', px: 1, py: 0.5, borderRadius: 'sm' },
                             'pre': { bg: 'gray.50', p: 4, borderRadius: 'md', overflowX: 'auto' },
-                            'blockquote': { borderLeft: '4px solid', borderColor: 'gray.300', pl: 4, fontStyle: 'italic', color: 'gray.600', my: 4 }
+                            'blockquote': { borderLeft: '4px solid', borderColor: 'gray.300', pl: 4, fontStyle: 'italic', color: 'gray.600', my: 4 },
+                            'a': { color: 'blue.500', textDecoration: 'underline', cursor: 'pointer', _hover: { color: 'blue.600' } }
                         }}
                     >
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                                a: ({ href, children }) => (
+                                    <a
+                                        href={href}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+                                                window.electronAPI.openExternal(href);
+                                            }
+                                        }}
+                                        style={{ color: '#3182ce', textDecoration: 'underline', cursor: 'pointer' }}
+                                    >
+                                        {children}
+                                    </a>
+                                )
+                            }}
+                        >
                             {snippet.content}
                         </ReactMarkdown>
                     </Box>

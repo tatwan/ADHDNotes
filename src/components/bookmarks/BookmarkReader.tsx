@@ -1,15 +1,82 @@
 import { Box, Heading, Text, Link, Flex, Badge, Button, Image } from '@chakra-ui/react';
 import { useBookmarkStore } from '../../stores/bookmarkStore';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { FiExternalLink } from 'react-icons/fi';
+
+/**
+ * Process HTML content to replace adhdnotes-asset:// URLs with data URLs
+ */
+async function processContentImages(content: string): Promise<string> {
+    if (!content) return content;
+
+    // Find all adhdnotes-asset:// URLs
+    const assetRegex = /adhdnotes-asset:\/\/([^"'\s]+)/g;
+    const matches = [...content.matchAll(assetRegex)];
+
+    if (matches.length === 0) return content;
+
+    // Create a map of asset URLs to data URLs
+    const replacements: Map<string, string> = new Map();
+
+    // Load all assets in parallel
+    await Promise.all(
+        matches.map(async (match) => {
+            const fullMatch = match[0];
+            const filename = match[1];
+
+            if (replacements.has(fullMatch)) return; // Already processed
+
+            try {
+                // @ts-ignore
+                const result = await window.electronAPI.readBookmarkAsset(filename);
+                if (result.success && result.dataUrl) {
+                    replacements.set(fullMatch, result.dataUrl);
+                }
+            } catch (error) {
+                console.warn(`Failed to load asset: ${filename}`, error);
+            }
+        })
+    );
+
+    // Replace all asset URLs with data URLs
+    let processedContent = content;
+    for (const [assetUrl, dataUrl] of replacements) {
+        processedContent = processedContent.split(assetUrl).join(dataUrl);
+    }
+
+    return processedContent;
+}
 
 const BookmarkReader = () => {
     const { getSelectedBookmark, selectedBookmarkId } = useBookmarkStore();
     const [bookmark, setBookmark] = useState(getSelectedBookmark());
+    const [processedContent, setProcessedContent] = useState<string | null>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    // Process content when bookmark changes
+    const loadContent = useCallback(async () => {
+        const currentBookmark = getSelectedBookmark();
+        setBookmark(currentBookmark);
+
+        if (currentBookmark?.content) {
+            setIsProcessing(true);
+            try {
+                const processed = await processContentImages(currentBookmark.content);
+                setProcessedContent(processed);
+            } catch (error) {
+                console.error('Error processing content:', error);
+                setProcessedContent(currentBookmark.content);
+            } finally {
+                setIsProcessing(false);
+            }
+        } else {
+            setProcessedContent(null);
+        }
+    }, [getSelectedBookmark]);
 
     useEffect(() => {
-        setBookmark(getSelectedBookmark());
-    }, [selectedBookmarkId, getSelectedBookmark]);
+        loadContent();
+    }, [selectedBookmarkId, loadContent]);
 
     if (!bookmark) {
         return (
@@ -56,7 +123,9 @@ const BookmarkReader = () => {
                     </Flex>
                 )}
 
-                {bookmark.content ? (
+                {isProcessing ? (
+                    <Text color="gray.500">Loading content...</Text>
+                ) : processedContent ? (
                     <Box
                         className="prose"
                         sx={{
@@ -67,9 +136,21 @@ const BookmarkReader = () => {
                             'h2': { fontSize: 'xl' },
                             'ul, ol': { pl: 6, mb: 4 },
                             'li': { mb: 1 },
+                            'a': { color: 'blue.500', textDecoration: 'underline', cursor: 'pointer', _hover: { color: 'blue.600' } },
                             'blockquote': { borderLeft: '4px solid gray', pl: 4, fontStyle: 'italic', color: 'gray.600', my: 4 }
                         }}
-                        dangerouslySetInnerHTML={{ __html: bookmark.content }}
+                        onClick={(e: React.MouseEvent) => {
+                            const target = e.target as HTMLElement;
+                            if (target.tagName === 'A') {
+                                e.preventDefault();
+                                const href = target.getAttribute('href');
+                                if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+                                    // @ts-ignore
+                                    window.electronAPI.openExternal(href);
+                                }
+                            }
+                        }}
+                        dangerouslySetInnerHTML={{ __html: processedContent }}
                     />
                 ) : (
                     <Text color="gray.500" fontStyle="italic">Content not available</Text>

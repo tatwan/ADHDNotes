@@ -30,6 +30,7 @@
     "@fastify/cors": "^9.0.1",
     "@mozilla/readability": "^0.6.0",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "@types/turndown": "^5.0.6",
     "better-sqlite3": "^12.5.0",
     "chokidar": "^3.5.3",
     "codemirror": "^6.0.1",
@@ -48,6 +49,7 @@
     "react-syntax-highlighter": "^16.1.0",
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
+    "turndown": "^7.2.2",
     "uuid": "^9.0.1",
     "zustand": "^4.5.0"
   },

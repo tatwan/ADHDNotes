@@ -3,9 +3,13 @@ import cors from '@fastify/cors';
 import { getDB, bookmarks, tags, bookmarksTags, snippets } from '../db';
 import { scrapeUrl } from '../services/scraper';
 import { generateTags } from '../services/ai';
+import { downloadAsset, downloadContentImages } from '../services/assets';
 import { eq } from 'drizzle-orm';
 
-const fastify = Fastify({ logger: true });
+const fastify = Fastify({
+    logger: true,
+    bodyLimit: 50 * 1024 * 1024 // 50MB limit to handle large webpages
+});
 
 // Enable CORS for the extension
 fastify.register(cors, {
@@ -37,29 +41,41 @@ fastify.post('/api/save-bookmark', async (request, reply) => {
         // For now, awaiting to ensure success
         const data = await scrapeUrl(url, html);
 
-        // Insert bookmark
+        // Insert bookmark first to get the ID
         const result = db.insert(bookmarks).values({
             url: data.url,
             title: data.title,
             description: data.description,
-            content: data.content,
+            content: data.content, // Will be updated with local image paths
             faviconUrl: data.image,
-            isProcessed: true, // We processed it immediately here
+            isProcessed: false, // Mark as not processed until images are downloaded
             createdAt: new Date(),
             updatedAt: new Date()
         }).returning().get();
 
-        // Download asset if image exists
+        // Download and process all content images
+        if (data.content) {
+            const processedContent = await downloadContentImages(data.content, result.id, url);
+            db.update(bookmarks)
+                .set({ content: processedContent, isProcessed: true })
+                .where(eq(bookmarks.id, result.id))
+                .run();
+        } else {
+            db.update(bookmarks)
+                .set({ isProcessed: true })
+                .where(eq(bookmarks.id, result.id))
+                .run();
+        }
+
+        // Download OG image as favicon/thumbnail if exists
         if (data.image) {
-            import('../services/assets').then(async ({ downloadAsset }) => {
-                const localFilename = await downloadAsset(data.image, result.id);
-                if (localFilename) {
-                    db.update(bookmarks)
-                        .set({ localImagePath: localFilename })
-                        .where(eq(bookmarks.id, result.id))
-                        .run();
-                }
-            });
+            const localFilename = await downloadAsset(data.image, result.id);
+            if (localFilename) {
+                db.update(bookmarks)
+                    .set({ localImagePath: localFilename })
+                    .where(eq(bookmarks.id, result.id))
+                    .run();
+            }
         }
 
         // Generate tags (fire and forget or await)
@@ -89,7 +105,12 @@ fastify.post('/api/save-bookmark', async (request, reply) => {
 });
 
 fastify.post('/api/save-snippet', async (request, reply) => {
-    const { url, title, content } = request.body as { url: string, title?: string, content: string };
+    const { url, title, content, textContent } = request.body as {
+        url: string,
+        title?: string,
+        content: string,
+        textContent?: string
+    };
 
     if (!url || !content) {
         return reply.status(400).send({ error: 'URL and content are required' });
@@ -98,11 +119,20 @@ fastify.post('/api/save-snippet', async (request, reply) => {
     try {
         const db = getDB();
 
-        // Insert snippet
+        // Convert HTML to Markdown
+        const { htmlToMarkdown } = await import('../services/htmlToMarkdown');
+        let markdownContent = htmlToMarkdown(content);
+
+        // Fallback to plain text if conversion produces empty result
+        if (!markdownContent.trim() && textContent) {
+            markdownContent = textContent;
+        }
+
+        // Insert snippet with markdown content
         const result = db.insert(snippets).values({
             url,
             title: title || '',
-            content,
+            content: markdownContent,
             createdAt: new Date(),
             updatedAt: new Date()
         }).returning().get();

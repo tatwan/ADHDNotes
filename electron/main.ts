@@ -603,6 +603,33 @@ ipcMain.handle('delete-all-bookmarks', () => {
   }
 });
 
+// Read bookmark asset file
+ipcMain.handle('read-bookmark-asset', async (_, filename: string) => {
+  try {
+    const documentsPath = app.getPath('documents');
+    const assetsDir = join(documentsPath, 'ADHDNotes', 'bookmarks', 'assets');
+    const filePath = join(assetsDir, filename);
+
+    // Security: Ensure path is within assets directory
+    if (!filePath.startsWith(assetsDir)) {
+      throw new Error('Access denied: Path outside assets directory');
+    }
+
+    const buffer = await fs.readFile(filePath);
+    const ext = filename.split('.').pop()?.toLowerCase() || 'jpg';
+    let mimeType = 'image/jpeg';
+    if (ext === 'png') mimeType = 'image/png';
+    else if (ext === 'gif') mimeType = 'image/gif';
+    else if (ext === 'webp') mimeType = 'image/webp';
+    else if (ext === 'svg') mimeType = 'image/svg+xml';
+
+    const dataUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
+    return { success: true, dataUrl };
+  } catch (error: any) {
+    console.error('Error reading bookmark asset:', error);
+    return { success: false, error: error.message };
+  }
+});
 
 // Theme handlers
 ipcMain.handle('list-themes', async () => {

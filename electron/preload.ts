@@ -72,6 +72,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   deleteBookmark: (id: number) => ipcRenderer.invoke('delete-bookmark', id),
   deleteAllBookmarks: () => ipcRenderer.invoke('delete-all-bookmarks'),
   getTags: () => ipcRenderer.invoke('get-tags'),
+  readBookmarkAsset: (filename: string) => ipcRenderer.invoke('read-bookmark-asset', filename),
   appendToDailyNote: (text: string) => ipcRenderer.invoke('append-to-daily-note', text),
 
   // Open external URL
@@ -139,9 +140,17 @@ declare global {
       getBookmarks: () => Promise<{ success: boolean; bookmarks?: any[]; error?: string }>;
       getBookmark: (id: number) => Promise<{ success: boolean; bookmark?: any; error?: string }>;
       deleteBookmark: (id: number) => Promise<{ success: boolean; error?: string }>;
+      deleteAllBookmarks: () => Promise<{ success: boolean; error?: string }>;
       getTags: () => Promise<{ success: boolean; tags?: any[]; error?: string }>;
+      readBookmarkAsset: (filename: string) => Promise<{ success: boolean; dataUrl?: string; error?: string }>;
       appendToDailyNote: (text: string) => Promise<{ success: boolean; error?: string }>;
       openExternal: (url: string) => Promise<{ success: boolean; error?: string }>;
+
+      getSnippets: () => Promise<{ success: boolean; snippets?: any[]; error?: string }>;
+      getSnippet: (id: number) => Promise<{ success: boolean; snippet?: any; error?: string }>;
+      updateSnippet: (id: number, content: string) => Promise<{ success: boolean; error?: string }>;
+      deleteSnippet: (id: number) => Promise<{ success: boolean; error?: string }>;
+      deleteAllSnippets: () => Promise<{ success: boolean; error?: string }>;
     };
   }
 }

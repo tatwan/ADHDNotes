@@ -28,16 +28,38 @@ chrome.runtime.onMessage.addListener((request) => {
                 console.error(err);
             });
     } else if (request.action === "save_snippet") {
-        const payload = {
-            url: window.location.href,
-            title: document.title,
-            content: request.selectedText || window.getSelection()?.toString() || ''
-        };
+        // Get selection as HTML to preserve formatting
+        const selection = window.getSelection();
+        let htmlContent = '';
+        let textContent = '';
 
-        if (!payload.content.trim()) {
+        if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            const fragment = range.cloneContents();
+
+            // Create a temporary container to serialize the HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.appendChild(fragment);
+            htmlContent = tempDiv.innerHTML;
+            textContent = selection.toString();
+        }
+
+        // Use selectedText from context menu if available
+        const finalHtml = htmlContent || request.selectedText || '';
+        const finalText = textContent || request.selectedText || '';
+
+        if (!finalText.trim()) {
             alert('No text selected!');
             return;
         }
+
+        const payload = {
+            url: window.location.href,
+            title: document.title,
+            content: finalHtml,  // Send HTML content
+            textContent: finalText  // Also send plain text as fallback
+        };
+
 
         fetch('http://localhost:3666/api/save-snippet', {
             method: 'POST',
